@@ -14,9 +14,11 @@ cap = cv.VideoCapture("http://localhost:8081/stream/video.mjpeg")
 def nothing(x):
     pass
 
-WINDOW_NAME = "output"
-cv.namedWindow(WINDOW_NAME,cv.WINDOW_NORMAL)
-cv.resizeWindow(WINDOW_NAME,700,700)
+# WINDOW_NAME = "output"
+# cv.namedWindow(WINDOW_NAME,cv.WINDOW_NORMAL)
+# cv.resizeWindow(WINDOW_NAME,700,700)
+
+window_detection_name = 'Object Detection'
 
 # Creating the tracker bar for all the features
 # cv.createTrackbar("X",WINDOW_NAME,500,1000,nothing)
@@ -25,10 +27,10 @@ cv.resizeWindow(WINDOW_NAME,700,700)
 # cv.createTrackbar("alpha",WINDOW_NAME,180,360,nothing)
 # cv.createTrackbar("beta",WINDOW_NAME,180,360,nothing)
 # cv.createTrackbar("gama",WINDOW_NAME,180,360,nothing)
-# cv.createTrackbar("K1",WINDOW_NAME,0,10,nothing)
-# cv.createTrackbar("K2",WINDOW_NAME,0,10,nothing)
-# cv.createTrackbar("P1",WINDOW_NAME,0,10,nothing)
-# cv.createTrackbar("P2",WINDOW_NAME,0,10,nothing)
+# cv.createTrackbar("K1",window_detection_name,0,10,nothing)
+# cv.createTrackbar("K2",window_detection_name,0,10,nothing)
+# cv.createTrackbar("P1",window_detection_name,0,10,nothing)
+# cv.createTrackbar("P2",window_detection_name,0,10,nothing)
 # cv.createTrackbar("focus",WINDOW_NAME,600,1000,nothing)
 # cv.createTrackbar("Sx",WINDOW_NAME,100,1000,nothing)
 # cv.createTrackbar("Sy",WINDOW_NAME,100,1000,nothing)
@@ -108,7 +110,7 @@ distCoeff = np.zeros((4,1),np.float64)
 # TODO: add your coefficients here!
 k1 = -2.5e-5; # negative to remove barrel distortion
 k2 = 0.0;
-p1 = 0.0;
+p1 = 25e-5;
 p2 = 0.0;
 
 distCoeff[0,0] = k1;
@@ -163,9 +165,15 @@ while True:
     dilation = cv.dilate(frame_threshold, kernel, iterations=1) 
     erosion = cv.erode(dilation, kernel, iterations=1)
     erosionG = cv.Canny(erosion, 50, 200, None, 3)
+    erosionG2 = cv.erode(erosion, np.ones((3,3), np.uint8), iterations = 1)
     distO = np.copy(dist)
+    # distO = np.zeros((height,width,3), np.uint8)
+    
 
-    lines = cv.HoughLines(erosionG, 1, np.pi / 180, 150, None, 0, 0)
+    rotTheta = 0
+    rotM = cv.getRotationMatrix2D((width/2, height/2), rotTheta * 180 / np.pi, 1.0)
+
+    lines = cv.HoughLines(erosionG, 1, np.pi / 180, 200, None, 0, 0)
     if lines is not None:
         for i in range(0, len(lines)):
             rho = lines[i][0][0]
@@ -177,14 +185,23 @@ while True:
             pt1 = (int(x0 + 1000*(-b)), int(y0 + 1000*(a)))
             pt2 = (int(x0 - 1000*(-b)), int(y0 - 1000*(a)))
             cv.line(distO, pt1, pt2, (0,0,255), 3, cv.LINE_AA)
+            rotTheta += (pt1[1]-pt2[1])/(pt1[0]-pt2[0])
+
+        rotTheta = rotTheta / len(lines)
+        rotTheta = math.atan(rotTheta)
+
+        rotM = cv.getRotationMatrix2D((width/2, height/2), rotTheta * 180 / np.pi, 0.8)
+
+    distOR = cv.warpAffine(src=distO, M=rotM, dsize=(width, height))
     
     # diff = cv.absdiff(dilation, erosion)
 
 
     # Display the resulting frame
     cv.imshow('frame', dist)
-    cv.imshow("threshold", frame_threshold)
+    cv.imshow("threshold", erosionG)
     cv.imshow("Detected Lines (in red) - Standard Hough Line Transform", distO)
+    cv.imshow("Rotated", distOR)
     if cv.waitKey(1) == ord('q'):
         break
 # When everything done, release the capture
