@@ -18,4 +18,4 @@ python get-pip.py
 
 # install libraries
 arduino-cli lib install "Adafruit BME280 Library"
-arduino cli lib install "WiFiNINA"
+arduino-cli lib install "WiFiNINA"
