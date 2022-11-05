@@ -11,12 +11,14 @@ rm arduino-cli.tar.bz2
 mv `ls -1` /usr/bin/arduino-cli
 
 # Install python, pip and pyserial
-apt-get install python -y
+apt-get install python3.7 -y
 curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 python get-pip.py
 #pip install pyserial
 
-# install libraries
-arduino-cli lib install "Adafruit BME280 Library"
+# install libraries and boards
+arduino-cli core install arduino:avr
+arduino-cli lib install arduino:megaavr
+arduino-cli lib install "Adafruit Motor Shield V2 Library"
 arduino-cli lib install "WiFiNINA"
 arduino-cli core update-index
