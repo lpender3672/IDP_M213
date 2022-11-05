@@ -11,4 +11,4 @@ compile:
   tags:
     - docker
   script:
-    - arduino-cli compile --fqbn arduino:avr:uno -o ignored.bin main.ino
+    - arduino-cli compile --fqbn arduino:avr:unowifi -o ignored.bin src/main.ino

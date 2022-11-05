@@ -1,5 +1,0 @@
-{
-    "board": "arduino:avr:unowifi",
-    "programmer": "arduino:avrisp",
-    "sketch": "main.ino"
-}
