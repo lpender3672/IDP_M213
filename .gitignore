@@ -1,3 +1,8 @@
+
+# vscode settings
+.vscode/*
+*.vsix
+
 # remove latex clutter
 *.aux
 *.fdb_latexmk
