@@ -1,7 +1,7 @@
 image: ubuntu:18.04
  
 before_script:
-  - ./setup-build-env.sh
+  - bash ./setup-build-env.sh
 
 stages:
   - build
