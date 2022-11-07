@@ -205,7 +205,6 @@ while True:
     tresh_R = cv.inRange(rconv, (154, 95, 100), (180, 164, 157))
     
     
-    
     tresh_R = cv.GaussianBlur(tresh_R, (15, 15), 1);
     rkernel = np.ones((40, 40), np.uint8)
     tresh_R = cv.dilate(tresh_R, rkernel, iterations=1) 
@@ -216,25 +215,24 @@ while True:
     tresh_path = cv.dilate(tresh_path, rkernel, iterations=1) 
     tresh_path = cv.erode(tresh_path, rkernel, iterations=1)
 
-    tresh_G = cv.GaussianBlur(tresh_G, (15, 15), 1);
-    rkernel = np.ones((40, 40), np.uint8)
+    tresh_G = cv.GaussianBlur(tresh_G, (37, 37), 1);
+    rkernel = np.ones((70, 70), np.uint8)
     tresh_G = cv.dilate(tresh_G, rkernel, iterations=1) 
     tresh_G = cv.erode(tresh_G, rkernel, iterations=1)
 
     # find contours in the thresholded image
     cnts,_ = cv.findContours(tresh_G.copy(), cv.RETR_TREE, cv.CHAIN_APPROX_NONE)
-    ic(len(cnts))
-    gc = cv.drawContours(tresh_G, cnts, -1, 255, 5)
+    # ic(len(cnts))
+    # gc = cv.drawContours(tresh_G, cnts, -1, 255, 5)
 
-
-
-
+    gc = cv.cvtColor(tresh_G, cv.COLOR_GRAY2BGR)
+    cv.drawContours(gc, cnts, -1, (0,255,0), 2)
 
     # Display the resulting frame
     # cv.imshow('frame', dist)
     cv.imshow("path", tresh_path)
     cv.imshow("red", tresh_R)
-    cv.imshow("green", tresh_G)
+    cv.imshow("green", gc)
     cv.imshow("original", dist)
     if cv.waitKey(1) == ord('q'):
         break
