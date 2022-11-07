@@ -5,6 +5,7 @@
 import math
 import cv2 as cv
 import numpy as np
+from icecream import ic
 
 cap = cv.VideoCapture("http://localhost:8081/stream/video.mjpeg")
 
@@ -159,13 +160,13 @@ while True:
 
     # https://github.com/ShaheerSajid/OpenCV-Maze-Solving/blob/main/code/Source.cpp
     hsv = cv.cvtColor(dist, cv.COLOR_BGR2HSV) #src BGR to HSV	
-    frame_threshold = cv.inRange(hsv, (low_H, low_S, low_V), (high_H, high_S, high_V))
+    frame_threshold = cv.inRange(hsv, (0, 0, 228), (255, 255, 255))
     frame_threshold = cv.GaussianBlur(frame_threshold, (9, 9), 1);
     kernel = np.ones((19, 19), np.uint8)
     dilation = cv.dilate(frame_threshold, kernel, iterations=1) 
     erosion = cv.erode(dilation, kernel, iterations=1)
-    erosionG = cv.Canny(erosion, 50, 200, None, 3)
-    erosionG2 = cv.erode(erosion, np.ones((3,3), np.uint8), iterations = 1)
+    erosionG = cv.Canny(erosion, 40, 200, None, 3)
+    # erosionG2 = cv.erode(erosion, np.ones((3,3), np.uint8), iterations = 1)
     distO = np.copy(dist)
     # distO = np.zeros((height,width,3), np.uint8)
     
@@ -173,7 +174,7 @@ while True:
     rotTheta = 0
     rotM = cv.getRotationMatrix2D((width/2, height/2), rotTheta * 180 / np.pi, 1.0)
 
-    lines = cv.HoughLines(erosionG, 1, np.pi / 180, 200, None, 0, 0)
+    lines = cv.HoughLines(erosionG, 1, np.pi / 250, 175, None, 0, 0)
     if lines is not None:
         for i in range(0, len(lines)):
             rho = lines[i][0][0]
@@ -192,16 +193,49 @@ while True:
 
         rotM = cv.getRotationMatrix2D((width/2, height/2), rotTheta * 180 / np.pi, 0.8)
 
-    distOR = cv.warpAffine(src=distO, M=rotM, dsize=(width, height))
+    distOL = cv.warpAffine(src=distO, M=rotM, dsize=(width, height))
+    distOR = cv.warpAffine(src=dist, M=rotM, dsize=(width, height))
+
+
+    corrected = cv.cvtColor(distOR, cv.COLOR_BGR2HSV)
+    tresh_path = cv.inRange(corrected, (0, 0, 228), (255, 28, 255))
+    tresh_G = cv.inRange(corrected, (66, 169, 0), (85, 255, 255))
+    # r,g,b = cv.split(cv.cvtColor(corrected, cv.COLOR_))
+    rconv = cv.cvtColor(corrected, cv.COLOR_BGR2LAB)
+    tresh_R = cv.inRange(rconv, (154, 95, 100), (180, 164, 157))
     
-    # diff = cv.absdiff(dilation, erosion)
+    
+    
+    tresh_R = cv.GaussianBlur(tresh_R, (15, 15), 1);
+    rkernel = np.ones((40, 40), np.uint8)
+    tresh_R = cv.dilate(tresh_R, rkernel, iterations=1) 
+    tresh_R = cv.erode(tresh_R, rkernel, iterations=1)
+
+    tresh_path = cv.GaussianBlur(tresh_path, (15, 15), 1);
+    rkernel = np.ones((40, 40), np.uint8)
+    tresh_path = cv.dilate(tresh_path, rkernel, iterations=1) 
+    tresh_path = cv.erode(tresh_path, rkernel, iterations=1)
+
+    tresh_G = cv.GaussianBlur(tresh_G, (15, 15), 1);
+    rkernel = np.ones((40, 40), np.uint8)
+    tresh_G = cv.dilate(tresh_G, rkernel, iterations=1) 
+    tresh_G = cv.erode(tresh_G, rkernel, iterations=1)
+
+    # find contours in the thresholded image
+    cnts,_ = cv.findContours(tresh_G.copy(), cv.RETR_TREE, cv.CHAIN_APPROX_NONE)
+    ic(len(cnts))
+    gc = cv.drawContours(tresh_G, cnts, -1, 255, 5)
+
+
+
 
 
     # Display the resulting frame
-    cv.imshow('frame', dist)
-    cv.imshow("threshold", erosionG)
-    cv.imshow("Detected Lines (in red) - Standard Hough Line Transform", distO)
-    cv.imshow("Rotated", distOR)
+    # cv.imshow('frame', dist)
+    cv.imshow("path", tresh_path)
+    cv.imshow("red", tresh_R)
+    cv.imshow("green", tresh_G)
+    cv.imshow("original", dist)
     if cv.waitKey(1) == ord('q'):
         break
 # When everything done, release the capture
