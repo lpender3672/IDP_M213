@@ -199,7 +199,7 @@ while True:
 
     corrected = cv.cvtColor(distOR, cv.COLOR_BGR2HSV)
     tresh_path = cv.inRange(corrected, (0, 0, 228), (255, 28, 255))
-    tresh_G = cv.inRange(corrected, (66, 169, 0), (85, 255, 255))
+    tresh_G = cv.inRange(corrected, (66, 169, 100), (85, 255, 255))
     # r,g,b = cv.split(cv.cvtColor(corrected, cv.COLOR_))
     rconv = cv.cvtColor(corrected, cv.COLOR_BGR2LAB)
     tresh_R = cv.inRange(rconv, (154, 95, 100), (180, 164, 157))
