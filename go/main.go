@@ -81,5 +81,5 @@ func mjpegCapture() {
 
 func startStreamHttp(){
 	http.Handle("/", stream)
-	log.Fatal(http.ListenAndServe("0.0.0.0:3005", nil))
+	log.Fatal(http.ListenAndServe("localhost:3005", nil))
 }
