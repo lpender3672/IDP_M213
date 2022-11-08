@@ -213,8 +213,8 @@ while True:
     tresh_O = cv.inRange(corrected, (27, 91, 182), (52, 255, 255))
 
     
-    tresh_R = cv.GaussianBlur(tresh_R, (41, 41), 1);
-    rkernel = np.ones((50, 50), np.uint8)
+    tresh_R = cv.GaussianBlur(tresh_R, (21, 21), 1);
+    rkernel = np.ones((11,11), np.uint8)
     tresh_R = cv.dilate(tresh_R, rkernel, iterations=1) 
     tresh_R = cv.erode(tresh_R, rkernel, iterations=1)
 
