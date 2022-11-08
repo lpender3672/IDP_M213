@@ -199,15 +199,19 @@ while True:
     distOL = cv.warpAffine(src=distO, M=rotM, dsize=(width, height))
     distOR = cv.warpAffine(src=dist, M=rotM, dsize=(width, height))
 
+    
+    dim = (int(width/2), int(height/2))
+    distOR = cv.resize(distOR, dim, interpolation = cv.INTER_AREA)
+
 
     corrected = cv.cvtColor(distOR, cv.COLOR_BGR2HSV)
     tresh_path = cv.inRange(corrected, (0, 0, 228), (255, 28, 255))
     tresh_G = cv.inRange(corrected, (66, 169, 100), (85, 255, 255))
-    # r,g,b = cv.split(cv.cvtColor(corrected, cv.COLOR_))
     rconv = cv.cvtColor(corrected, cv.COLOR_BGR2LAB)
-    tresh_R = cv.inRange(rconv, (154, 132, 111), (180, 157, 172))
-    # tresh_R = cv.inRange(rconv, (low_H, low_S, low_V), (high_H, high_S, high_V))
-    
+    tresh_R = cv.inRange(rconv, (154, 132, 111), (180, 157, 172))  
+    # tresh_O = cv.inRange(corrected, (low_H, low_S, low_V), (high_H, high_S, high_V))
+    tresh_O = cv.inRange(corrected, (27, 91, 182), (52, 255, 255))
+
     
     tresh_R = cv.GaussianBlur(tresh_R, (41, 41), 1);
     rkernel = np.ones((50, 50), np.uint8)
@@ -224,8 +228,13 @@ while True:
     tresh_G = cv.dilate(tresh_G, rkernel, iterations=1) 
     tresh_G = cv.erode(tresh_G, rkernel, iterations=1)
 
+    tresh_O = cv.GaussianBlur(tresh_O, (37, 37), 1);
+    rkernel = np.ones((30, 30), np.uint8)
+    tresh_O = cv.dilate(tresh_O, rkernel, iterations=1) 
+    tresh_O = cv.erode(tresh_O, rkernel, iterations=1)
+
     # find contours in the thresholded image
-    cnts,hie = cv.findContours(tresh_G.copy(), cv.RETR_TREE, cv.CHAIN_APPROX_NONE)
+    cnts,hie = cv.findContours(tresh_G.copy(), cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
     gc = cv.cvtColor(tresh_G, cv.COLOR_GRAY2BGR)
     cv.drawContours(gc, cnts, -1, (0,255,0), 2)
     # ic(cnts)
@@ -244,7 +253,7 @@ while True:
             cv.circle(gc, (cx,cy), radius=3, color=(0, 255, 0), thickness=-1)
 
 
-    cnts,hie = cv.findContours(tresh_R.copy(), cv.RETR_TREE, cv.CHAIN_APPROX_NONE)
+    cnts,hie = cv.findContours(tresh_R.copy(), cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
     rc = cv.cvtColor(tresh_R, cv.COLOR_GRAY2BGR)
     cv.drawContours(rc, cnts, -1, (0,255,0), 2)
     nested = []
@@ -254,7 +263,7 @@ while True:
                 # ic(hie[0][i])
                 nested.append(i)
         # ic(nested)
-        ic(hie)
+        # ic(hie)
         for n in nested:
             M = cv.moments(cnts[n])
             cx = int(M['m10']/M['m00'])
@@ -264,10 +273,11 @@ while True:
             
 
     # Display the resulting frame
-    # cv.imshow('frame', dist)
-    # cv.imshow("path", tresh_path)
+    cv.imshow('frame', corrected)
+    cv.imshow("path", tresh_path)
     cv.imshow("red", rc)
     cv.imshow("green", gc)
+    cv.imshow("obstacle", tresh_O)
     # cv.imshow("original", dist)
     if cv.waitKey(1) == ord('q'):
         break
