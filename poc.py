@@ -186,7 +186,10 @@ while True:
             pt1 = (int(x0 + 1000*(-b)), int(y0 + 1000*(a)))
             pt2 = (int(x0 - 1000*(-b)), int(y0 - 1000*(a)))
             cv.line(distO, pt1, pt2, (0,0,255), 3, cv.LINE_AA)
-            rotTheta += (pt1[1]-pt2[1])/(pt1[0]-pt2[0])
+            try:
+                rotTheta += (pt1[1]-pt2[1])/(pt1[0]-pt2[0])
+            except ZeroDivisionError:
+                ic("Rotation Lock Lost")
 
         rotTheta = rotTheta / len(lines)
         rotTheta = math.atan(rotTheta)
@@ -202,11 +205,12 @@ while True:
     tresh_G = cv.inRange(corrected, (66, 169, 100), (85, 255, 255))
     # r,g,b = cv.split(cv.cvtColor(corrected, cv.COLOR_))
     rconv = cv.cvtColor(corrected, cv.COLOR_BGR2LAB)
-    tresh_R = cv.inRange(rconv, (154, 95, 100), (180, 164, 157))
+    tresh_R = cv.inRange(rconv, (154, 132, 111), (180, 157, 172))
+    # tresh_R = cv.inRange(rconv, (low_H, low_S, low_V), (high_H, high_S, high_V))
     
     
-    tresh_R = cv.GaussianBlur(tresh_R, (15, 15), 1);
-    rkernel = np.ones((40, 40), np.uint8)
+    tresh_R = cv.GaussianBlur(tresh_R, (41, 41), 1);
+    rkernel = np.ones((50, 50), np.uint8)
     tresh_R = cv.dilate(tresh_R, rkernel, iterations=1) 
     tresh_R = cv.erode(tresh_R, rkernel, iterations=1)
 
@@ -221,19 +225,50 @@ while True:
     tresh_G = cv.erode(tresh_G, rkernel, iterations=1)
 
     # find contours in the thresholded image
-    cnts,_ = cv.findContours(tresh_G.copy(), cv.RETR_TREE, cv.CHAIN_APPROX_NONE)
-    # ic(len(cnts))
-    # gc = cv.drawContours(tresh_G, cnts, -1, 255, 5)
-
+    cnts,hie = cv.findContours(tresh_G.copy(), cv.RETR_TREE, cv.CHAIN_APPROX_NONE)
     gc = cv.cvtColor(tresh_G, cv.COLOR_GRAY2BGR)
     cv.drawContours(gc, cnts, -1, (0,255,0), 2)
+    # ic(cnts)
+    nested = []
+    if hie is not None:
+        for i in range(len(hie[0])):
+            if hie[0][i][3] != -1: #select 1 layer in
+                # ic(hie[0][i])
+                nested.append(i)
+        # ic(nested)
+        # ic(hie)
+        for n in nested:
+            M = cv.moments(cnts[n])
+            cx = int(M['m10']/M['m00'])
+            cy = int(M['m01']/M['m00'])
+            cv.circle(gc, (cx,cy), radius=3, color=(0, 255, 0), thickness=-1)
+
+
+    cnts,hie = cv.findContours(tresh_R.copy(), cv.RETR_TREE, cv.CHAIN_APPROX_NONE)
+    rc = cv.cvtColor(tresh_R, cv.COLOR_GRAY2BGR)
+    cv.drawContours(rc, cnts, -1, (0,255,0), 2)
+    nested = []
+    if hie is not None:
+        for i in range(len(hie[0])):
+            if hie[0][i][3] != -1: #select 1 layer in
+                # ic(hie[0][i])
+                nested.append(i)
+        # ic(nested)
+        ic(hie)
+        for n in nested:
+            M = cv.moments(cnts[n])
+            cx = int(M['m10']/M['m00'])
+            cy = int(M['m01']/M['m00'])
+            rc = cv.circle(rc, (cx,cy), radius=3, color=(0, 0, 255), thickness=-1)
+
+            
 
     # Display the resulting frame
     # cv.imshow('frame', dist)
-    cv.imshow("path", tresh_path)
-    cv.imshow("red", tresh_R)
+    # cv.imshow("path", tresh_path)
+    cv.imshow("red", rc)
     cv.imshow("green", gc)
-    cv.imshow("original", dist)
+    # cv.imshow("original", dist)
     if cv.waitKey(1) == ord('q'):
         break
 # When everything done, release the capture
