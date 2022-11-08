@@ -2,6 +2,9 @@ package main
 
 import (
 	"fmt"
+	"log"
+
+	"net/http"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/template/html"
@@ -30,9 +33,11 @@ func main() {
 
 	// create the mjpeg stream
 	stream = mjpeg.NewStream()
-
 	// start capturing
 	go mjpegCapture()
+	// start http server
+	go startStreamHttp()
+	
 
 	engine := html.New("./templates", ".html")
 
@@ -41,7 +46,6 @@ func main() {
     })
     app.Static("/public", "./public")
     app.Get("/", mainPage)
-	app.Get("/stream", stream)
     app.Listen(":3000")
 
 	
@@ -73,4 +77,9 @@ func mjpegCapture() {
 		stream.UpdateJPEG(buf.GetBytes())
 		buf.Close()
 	}
+}
+
+func startStreamHttp(){
+	http.Handle("/", stream)
+	log.Fatal(http.ListenAndServe("0.0.0.0:3005", nil))
 }
