@@ -127,6 +127,8 @@ cam[1,2] = height/2.0 # define center y
 cam[0,0] = 6.        # define focal length x
 cam[1,1] = 6.        # define focal length y
 
+pathCornerStack = []
+
 # cap = cv.undistort(cap,cam,distCoeff)
 
 
@@ -205,7 +207,7 @@ while True:
 
 
     corrected = cv.cvtColor(distOR, cv.COLOR_BGR2HSV)
-    tresh_path = cv.inRange(corrected, (0, 0, 228), (255, 28, 255))
+    tresh_path = cv.inRange(corrected, (0, 0, 228), (255, 16, 255))
     tresh_G = cv.inRange(corrected, (66, 169, 100), (85, 255, 255))
     rconv = cv.cvtColor(corrected, cv.COLOR_BGR2LAB)
     tresh_R = cv.inRange(rconv, (154, 132, 111), (180, 157, 172))  
@@ -213,27 +215,27 @@ while True:
     tresh_O = cv.inRange(corrected, (27, 91, 182), (52, 255, 255))
 
     
-    tresh_R = cv.GaussianBlur(tresh_R, (41, 41), 1);
-    rkernel = np.ones((50, 50), np.uint8)
+    tresh_R = cv.GaussianBlur(tresh_R, (15,15), 1);
+    rkernel = np.ones((30,30), np.uint8)
     tresh_R = cv.dilate(tresh_R, rkernel, iterations=1) 
     tresh_R = cv.erode(tresh_R, rkernel, iterations=1)
 
     tresh_path = cv.GaussianBlur(tresh_path, (15, 15), 1);
-    rkernel = np.ones((40, 40), np.uint8)
+    rkernel = np.ones((11,11), np.uint8)
     tresh_path = cv.dilate(tresh_path, rkernel, iterations=1) 
     tresh_path = cv.erode(tresh_path, rkernel, iterations=1)
 
-    tresh_G = cv.GaussianBlur(tresh_G, (37, 37), 1);
-    rkernel = np.ones((70, 70), np.uint8)
+    tresh_G = cv.GaussianBlur(tresh_G, (15,15), 1);
+    rkernel = np.ones((30, 30), np.uint8)
     tresh_G = cv.dilate(tresh_G, rkernel, iterations=1) 
     tresh_G = cv.erode(tresh_G, rkernel, iterations=1)
 
     tresh_O = cv.GaussianBlur(tresh_O, (37, 37), 1);
-    rkernel = np.ones((30, 30), np.uint8)
+    rkernel = np.ones((11, 11), np.uint8)
     tresh_O = cv.dilate(tresh_O, rkernel, iterations=1) 
     tresh_O = cv.erode(tresh_O, rkernel, iterations=1)
 
-    # find contours in the thresholded image
+    # find green square
     cnts,hie = cv.findContours(tresh_G.copy(), cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
     gc = cv.cvtColor(tresh_G, cv.COLOR_GRAY2BGR)
     cv.drawContours(gc, cnts, -1, (0,255,0), 2)
@@ -252,7 +254,7 @@ while True:
             cy = int(M['m01']/M['m00'])
             cv.circle(gc, (cx,cy), radius=3, color=(0, 255, 0), thickness=-1)
 
-
+    #find red square
     cnts,hie = cv.findContours(tresh_R.copy(), cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
     rc = cv.cvtColor(tresh_R, cv.COLOR_GRAY2BGR)
     cv.drawContours(rc, cnts, -1, (0,255,0), 2)
@@ -269,15 +271,60 @@ while True:
             cx = int(M['m10']/M['m00'])
             cy = int(M['m01']/M['m00'])
             rc = cv.circle(rc, (cx,cy), radius=3, color=(0, 0, 255), thickness=-1)
+    
+    #find tunnel
+    cnts,hie = cv.findContours(tresh_O.copy(), cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+    oc = cv.cvtColor(tresh_O, cv.COLOR_GRAY2BGR)
+    cv.drawContours(oc, cnts, -1, (0,255,0), 2)
+    # nested = []
+    # if hie is not None:
+    #     for i in range(len(hie[0])):
+    #         if hie[0][i][3] != -1: #select 1 layer in
+    #             # ic(hie[0][i])
+    #             nested.append(i)
+    #     # ic(nested)
+    #     # ic(hie)
+    #     for n in nested:
+    #         M = cv.moments(cnts[n])
+    #         cx = int(M['m10']/M['m00'])
+    #         cy = int(M['m01']/M['m00'])
+    #         rc = cv.circle(rc, (cx,cy), radius=3, color=(0, 0, 255), thickness=-1)
+
+    #find endpoints on path
+    # po = cv.Canny(tresh_path, 100, 200, None, 3)
+    tresh_pathB = cv.GaussianBlur(tresh_path, (3,3), 1)
+    tresh_pathF = np.float32(tresh_pathB)
+    pathCorner = cv.cornerHarris(tresh_pathF, 5, 3, 0.04)
+    pathCorner = cv.erode(pathCorner, None, iterations = 2)
+    pathCorner = cv.dilate(pathCorner,None)
+    #do temporal filtering
+    ntmax = 15
+    # ntcurrent = 0
+    
+    if(len(pathCornerStack)) == ntmax:
+        pathCornerStack.pop(-1) #circular buffer
+    pathCornerStack.append(pathCorner)
+    pathCornerStackS = np.sum(pathCornerStack, axis = 0)
+    pathCornerStackF = np.where(pathCornerStackS>255*12, 255, 0)
+    # ic(pathCornerStackF)
+    pathCornerStackF = pathCornerStackF.astype(np.uint8)
+    # np.clip(pathCornerStack,0 ,1)
+    # pathCornerStack = pathCornerStack*255
+
+    
+
+
+
+    
 
             
 
     # Display the resulting frame
     cv.imshow('frame', corrected)
-    cv.imshow("path", tresh_path)
-    cv.imshow("red", rc)
-    cv.imshow("green", gc)
-    cv.imshow("obstacle", tresh_O)
+    cv.imshow("path", pathCornerStackF)
+    # cv.imshow("red", rc)
+    # cv.imshow("green", gc)
+    cv.imshow("obstacle", oc)
     # cv.imshow("original", dist)
     if cv.waitKey(1) == ord('q'):
         break
