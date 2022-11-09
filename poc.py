@@ -15,26 +15,8 @@ cap = cv.VideoCapture("http://localhost:8081/stream/video.mjpeg")
 def nothing(x):
     pass
 
-# WINDOW_NAME = "output"
-# cv.namedWindow(WINDOW_NAME,cv.WINDOW_NORMAL)
-# cv.resizeWindow(WINDOW_NAME,700,700)
 
 window_detection_name = 'Object Detection'
-
-# Creating the tracker bar for all the features
-# cv.createTrackbar("X",WINDOW_NAME,500,1000,nothing)
-# cv.createTrackbar("Y",WINDOW_NAME,500,1000,nothing)
-# cv.createTrackbar("Z",WINDOW_NAME,0,1000,nothing)
-# cv.createTrackbar("alpha",WINDOW_NAME,180,360,nothing)
-# cv.createTrackbar("beta",WINDOW_NAME,180,360,nothing)
-# cv.createTrackbar("gama",WINDOW_NAME,180,360,nothing)
-# cv.createTrackbar("K1",window_detection_name,0,10,nothing)
-# cv.createTrackbar("K2",window_detection_name,0,10,nothing)
-# cv.createTrackbar("P1",window_detection_name,0,10,nothing)
-# cv.createTrackbar("P2",window_detection_name,0,10,nothing)
-# cv.createTrackbar("focus",WINDOW_NAME,600,1000,nothing)
-# cv.createTrackbar("Sx",WINDOW_NAME,100,1000,nothing)
-# cv.createTrackbar("Sy",WINDOW_NAME,100,1000,nothing)
 
 # https://docs.opencv.org/3.4/da/d97/tutorial_threshold_inRange.html
 
@@ -235,6 +217,10 @@ while True:
     tresh_O = cv.dilate(tresh_O, rkernel, iterations=1) 
     tresh_O = cv.erode(tresh_O, rkernel, iterations=1)
 
+    #get a diagnostic image
+    map = tresh_path.copy()
+    map = cv.cvtColor(map, cv.COLOR_GRAY2BGR)
+
     # find green square
     cnts,hie = cv.findContours(tresh_G.copy(), cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
     gc = cv.cvtColor(tresh_G, cv.COLOR_GRAY2BGR)
@@ -253,6 +239,7 @@ while True:
             cx = int(M['m10']/M['m00'])
             cy = int(M['m01']/M['m00'])
             cv.circle(gc, (cx,cy), radius=3, color=(0, 255, 0), thickness=-1)
+            map = cv.circle(map, (cx,cy), radius=3, color=(0, 255, 0), thickness=-1)
 
     #find red square
     cnts,hie = cv.findContours(tresh_R.copy(), cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
@@ -271,24 +258,13 @@ while True:
             cx = int(M['m10']/M['m00'])
             cy = int(M['m01']/M['m00'])
             rc = cv.circle(rc, (cx,cy), radius=3, color=(0, 0, 255), thickness=-1)
+            map = cv.circle(map, (cx,cy), radius=3, color=(0, 0, 255), thickness=-1)
     
     #find tunnel
     cnts,hie = cv.findContours(tresh_O.copy(), cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
     oc = cv.cvtColor(tresh_O, cv.COLOR_GRAY2BGR)
     cv.drawContours(oc, cnts, -1, (0,255,0), 2)
-    # nested = []
-    # if hie is not None:
-    #     for i in range(len(hie[0])):
-    #         if hie[0][i][3] != -1: #select 1 layer in
-    #             # ic(hie[0][i])
-    #             nested.append(i)
-    #     # ic(nested)
-    #     # ic(hie)
-    #     for n in nested:
-    #         M = cv.moments(cnts[n])
-    #         cx = int(M['m10']/M['m00'])
-    #         cy = int(M['m01']/M['m00'])
-    #         rc = cv.circle(rc, (cx,cy), radius=3, color=(0, 0, 255), thickness=-1)
+
 
     #find endpoints on path
     # po = cv.Canny(tresh_path, 100, 200, None, 3)
@@ -330,22 +306,19 @@ while True:
     for EP in obsEndPoint:
         # ic(EP)
         oc = cv.circle(oc, EP, radius=1, color=(0, 0, 255), thickness=-1)
-
-
-
-
-
+        map = cv.circle(map, EP, radius=3, color=(0, 255, 255), thickness=-1)
     
 
             
 
     # Display the resulting frame
-    # cv.imshow('frame', corrected)
+    cv.imshow('frame', corrected)
     # cv.imshow("path", tresh_path)
     # cv.imshow("red", rc)
     # cv.imshow("green", gc)
     # cv.imshow("obstacle", oc)
     # cv.imshow("original", dist)
+    cv.imshow("map", map)
     if cv.waitKey(1) == ord('q'):
         break
 # When everything done, release the capture
