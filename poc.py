@@ -222,43 +222,27 @@ while True:
     map = cv.cvtColor(map, cv.COLOR_GRAY2BGR)
 
     # find green square
-    cnts,hie = cv.findContours(tresh_G.copy(), cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+    cnts,_ = cv.findContours(tresh_G.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
     gc = cv.cvtColor(tresh_G, cv.COLOR_GRAY2BGR)
     cv.drawContours(gc, cnts, -1, (0,255,0), 2)
-    # ic(cnts)
-    nested = []
-    if hie is not None:
-        for i in range(len(hie[0])):
-            if hie[0][i][3] != -1: #select 1 layer in
-                # ic(hie[0][i])
-                nested.append(i)
-        # ic(nested)
-        # ic(hie)
-        for n in nested:
-            M = cv.moments(cnts[n])
-            cx = int(M['m10']/M['m00'])
-            cy = int(M['m01']/M['m00'])
-            cv.circle(gc, (cx,cy), radius=3, color=(0, 255, 0), thickness=-1)
-            map = cv.circle(map, (cx,cy), radius=3, color=(0, 255, 0), thickness=-1)
+    for cnt in cnts:
+        M = cv.moments(cnt)
+        cx = int(M['m10']/M['m00'])
+        cy = int(M['m01']/M['m00'])
+        cv.circle(gc, (cx,cy), radius=3, color=(0, 255, 0), thickness=-1)
+        map = cv.circle(map, (cx,cy), radius=3, color=(0, 255, 0), thickness=-1)
 
     #find red square
-    cnts,hie = cv.findContours(tresh_R.copy(), cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+    cnts,hie = cv.findContours(tresh_R.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
     rc = cv.cvtColor(tresh_R, cv.COLOR_GRAY2BGR)
     cv.drawContours(rc, cnts, -1, (0,255,0), 2)
-    nested = []
-    if hie is not None:
-        for i in range(len(hie[0])):
-            if hie[0][i][3] != -1: #select 1 layer in
-                # ic(hie[0][i])
-                nested.append(i)
-        # ic(nested)
-        # ic(hie)
-        for n in nested:
-            M = cv.moments(cnts[n])
-            cx = int(M['m10']/M['m00'])
-            cy = int(M['m01']/M['m00'])
-            rc = cv.circle(rc, (cx,cy), radius=3, color=(0, 0, 255), thickness=-1)
-            map = cv.circle(map, (cx,cy), radius=3, color=(0, 0, 255), thickness=-1)
+    for cnt in cnts:
+        M = cv.moments(cnt)
+        cx = int(M['m10']/M['m00'])
+        cy = int(M['m01']/M['m00'])
+        cv.circle(rc, (cx,cy), radius=3, color=(0, 255, 0), thickness=-1)
+        map = cv.circle(map, (cx,cy), radius=3, color=(0, 0, 255), thickness=-1)
+
     
     #find tunnel
     cnts,hie = cv.findContours(tresh_O.copy(), cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
