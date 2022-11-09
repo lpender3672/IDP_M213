@@ -6,6 +6,7 @@ import math
 import cv2 as cv
 import numpy as np
 from icecream import ic
+from timeit import default_timer as timer
 
 cap = cv.VideoCapture("http://localhost:8081/stream/video.mjpeg")
 
@@ -116,6 +117,8 @@ pathCornerStack = []
 
 
 while True:
+
+    start = timer()
     # Capture frame-by-frame
     ret, frame = cap.read()
 
@@ -267,8 +270,7 @@ while True:
     pathCornerStackF = np.where(pathCornerStackS>255*12, 255, 0)
     # ic(pathCornerStackF)
     pathCornerStackF = pathCornerStackF.astype(np.uint8)
-    # np.clip(pathCornerStack,0 ,1)
-    # pathCornerStack = pathCornerStack*255
+
 
     #find points that are within the obstacle so we can interpolate
     tresh_OD = cv.dilate(tresh_O, None, iterations = 3)
@@ -282,9 +284,9 @@ while True:
         for conP in cntsP:
             mu = cv.moments(conP)
             (px, py) = (int(mu['m10'] / (mu['m00'] + 1e-5)), int(mu['m01'] / (mu['m00'] + 1e-5)))
-            dist = cv.pointPolygonTest(conO, (px, py), False)
+            d = cv.pointPolygonTest(conO, (px, py), False)
             # ic(dist)
-            if dist == 1.0:
+            if d == 1.0:
                 obsEndPoint.append((px, py))
     # ic(obsEndPoint)
     for EP in obsEndPoint:
@@ -296,13 +298,10 @@ while True:
             
 
     # Display the resulting frame
-    cv.imshow('frame', corrected)
-    # cv.imshow("path", tresh_path)
-    # cv.imshow("red", rc)
-    # cv.imshow("green", gc)
-    # cv.imshow("obstacle", oc)
-    # cv.imshow("original", dist)
+    cv.imshow('frame', dist)
     cv.imshow("map", map)
+    end = timer()
+    # ic(end-start)
     if cv.waitKey(1) == ord('q'):
         break
 # When everything done, release the capture
