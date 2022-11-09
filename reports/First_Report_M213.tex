@@ -2,6 +2,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage{graphicx}
 \usepackage{cleveref}
+\usepackage{enumitem}
 
 \title{First IDP Report}
 \author{Group M213 ; Team 213 ; Robot 213}
@@ -115,18 +116,55 @@ The chassis design for the prototype has been designed to be very modular, we ha
 
 
 \section{Software}
+\subsection{Arduino Firmware}
+% Yuge and Steve please fill in your work here %
+\subsection{OpenCV}
+\subsubsection{Overall Plan}
+This branch of the project is currently in the nightly stage, i.e. we are only exploring the feasibility of using computer vision, powered by the OpenCV library, to carry out path planning around the arena and therefore offloading the navigation of the robot entirely to a PC.
+
+Should this be successful, the overall operation would involve streaming the live video feed from the overhead webcams into a Python script, which would carry out the following processing steps:
+\begin{enumerate}
+    \item World Mapping 
+    \begin{description}[leftmargin=-0.2in]
+        \item The script would detect all the features within the field of view such as the white path lines, the red and green squares, and the lime colored obstacle. A map of the arena would be constructed from the location information of these features, and cached into memory.
+    \end{description}
+    \item Navigate to Payload
+    \begin{description}[leftmargin=-0.2in]
+        \item[] In this state, the script waits for the presence of the target payload (the foam blocks). Once a foam block is detected, a pathfinding algorithm would be run to establish a path from the current robot position to the position of the foam blocks. Commands will then be sent to the robot to move according to the aforementioned path.
+    \end{description}
+    \item Navigate to Goal Area
+    \begin{description}[leftmargin=-0.2in]
+        \item[] In a similar manner, once the foam block has been picked up and it's category determined, the path planning algorithm infers a path from the current robot position to the goal area. Commands will then be sent to the robot to carry out the required movements.
+    \end{description}
+\end{enumerate}
+
+We plan to use UDP packets to stream commands to the Arduino on the robot, which would be configured to be an access point so that we have a dedicated data pipe that will not be affected by inconsistencies of the network infrastructure in the department. However, should the handling of the UDP packets become too much of a challenge, we could fall back to sending HTTP requests to command the Arduino - an approach that has been well documented by others within the maker community.
+
+\subsubsection{Potential Issues and Ways to Mitigate Them}
+\begin{enumerate}
+    \item Latency
+    \begin{description}[leftmargin=-0.2in]
+        \item[] We noticed that OpenCV buffers frames as they come in over the MJPEG stream, and therefore, with our current naive implementation, the speed at which the processing loop runs determines how much the current frame being processed lags behind real time.
+        \item[] This should be an easy fix, a thread could be spawned to clear out the frame buffer such that the current frame being read by the processing loop is never stale.
+    \end{description}
+    \item Network Dropout
+    \begin{description}[leftmargin=-0.2in]
+        \item[] We were informed multiple times by various parties that network stability was a huge issue for teams in the past.
+        \item[] In the event that issues with 802.11b/g/n network congestion become significant, the ESP32 on board the Arduino also has native support for Bluetooth Low Energy (BLE), which implements frequency hopping specifically to combat congestion, so we would switch over to using BLE for communication between the PC and the Arduino.
+    \end{description}
+\end{enumerate}
 
 
 \section{Appendix}
 % Please put all of your image documents in the asset folder and place all of your figures here. TQ
-\begin{figure}
+\begin{figure}[!h]
     \centering
     \includegraphics[width=0.8\textwidth]{assets/Cardboard_model.jpg}
     \caption{Cardboard Model}
     \label{fig:cardboard_model}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[!h]
     \centering
     \includegraphics[width=0.8\textwidth]{assets/Gripper_Mechanism.jpg}
     \caption{Scissor-like Gripper Mechanism}
