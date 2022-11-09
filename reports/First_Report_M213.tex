@@ -7,6 +7,21 @@
 \author{Group M213 ; Team 213 ; Robot 213}
 \date{November 2022}
 
+% To be confirmed that it requires the setspace package, try with and without.
+\usepackage{setspace}
+
+% Let top 85% of a page contain a figure
+\renewcommand{\topfraction}{0.85}
+
+% Default amount of minimum text on page (Set to 10%)
+\renewcommand{\textfraction}{0.1}
+
+% Only place figures by themselves if they take up more than 75% of the page
+\renewcommand{\floatpagefraction}{0.75}
+
+%zet de bladspiegel :
+\setlength\paperwidth{20.999cm}\setlength\paperheight{29.699cm}\setlength\voffset{-1in}\setlength\hoffset{-1in}\setlength\topmargin{1.499cm}\setlength\headheight{12pt}\setlength\headsep{0cm}\setlength\footskip{1.131cm}\setlength\textheight{25cm}\setlength\oddsidemargin{2.499cm}\setlength\textwidth{16.5cm}
+
 \begin{document}
 
 \maketitle
@@ -62,6 +77,7 @@ The chassis design for the prototype has been designed to be very modular, we ha
 
 
 \subsection{Cardboard Model}
+\quad We have made a cardboard model prototype for testing purposes as can be seen in \Cref{fig:cardboard_model}.
 
 \section{Electrical}
 
@@ -72,5 +88,12 @@ The chassis design for the prototype has been designed to be very modular, we ha
 
 \section{Appendix}
 % Please put all of your image documents in the asset folder and place all of your figures here. TQ
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/Cardboard_model.jpg}
+    \caption{Cardboard Model}
+    \label{fig:cardboard_model}
+\end{figure}
+
 
 \end{document}
