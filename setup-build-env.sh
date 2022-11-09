@@ -21,3 +21,4 @@ arduino-cli core update-index
 arduino-cli core install arduino:avr
 arduino-cli lib install "Adafruit Motor Shield V2 Library"
 arduino-cli lib install "WiFiNINA"
+arduino-cli lib update-index
