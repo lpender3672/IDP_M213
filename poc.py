@@ -292,15 +292,14 @@ while True:
 
     #find endpoints on path
     # po = cv.Canny(tresh_path, 100, 200, None, 3)
-    tresh_pathB = cv.GaussianBlur(tresh_path, (3,3), 1)
-    tresh_pathF = np.float32(tresh_pathB)
+    # tresh_pathB = cv.GaussianBlur(tresh_path, (3), 1)
+    tresh_pathF = np.float32(tresh_path)
     pathCorner = cv.cornerHarris(tresh_pathF, 5, 3, 0.04)
     pathCorner = cv.erode(pathCorner, None, iterations = 2)
     pathCorner = cv.dilate(pathCorner,None)
+
     #do temporal filtering
-    ntmax = 15
-    # ntcurrent = 0
-    
+    ntmax = 15    
     if(len(pathCornerStack)) == ntmax:
         pathCornerStack.pop(-1) #circular buffer
     pathCornerStack.append(pathCorner)
@@ -311,7 +310,28 @@ while True:
     # np.clip(pathCornerStack,0 ,1)
     # pathCornerStack = pathCornerStack*255
 
-    
+    #find points that are within the obstacle so we can interpolate
+    tresh_OD = cv.dilate(tresh_O, None, iterations = 3)
+    cntsO,_ = cv.findContours(tresh_OD.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+    cntsP,_ = cv.findContours(pathCornerStackF.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+    pc = cv.cvtColor(pathCornerStackF, cv.COLOR_GRAY2BGR)
+    oc = cv.cvtColor(tresh_OD, cv.COLOR_GRAY2BGR)
+    cv.drawContours(pc, cntsP, -1, (0,255,0), 1)
+    obsEndPoint = []
+    for conO in cntsO:
+        for conP in cntsP:
+            mu = cv.moments(conP)
+            (px, py) = (int(mu['m10'] / (mu['m00'] + 1e-5)), int(mu['m01'] / (mu['m00'] + 1e-5)))
+            dist = cv.pointPolygonTest(conO, (px, py), False)
+            # ic(dist)
+            if dist == 1.0:
+                obsEndPoint.append((px, py))
+    # ic(obsEndPoint)
+    for EP in obsEndPoint:
+        # ic(EP)
+        oc = cv.circle(oc, EP, radius=1, color=(0, 0, 255), thickness=-1)
+
+
 
 
 
@@ -320,11 +340,11 @@ while True:
             
 
     # Display the resulting frame
-    cv.imshow('frame', corrected)
-    cv.imshow("path", pathCornerStackF)
+    # cv.imshow('frame', corrected)
+    # cv.imshow("path", tresh_path)
     # cv.imshow("red", rc)
     # cv.imshow("green", gc)
-    cv.imshow("obstacle", oc)
+    # cv.imshow("obstacle", oc)
     # cv.imshow("original", dist)
     if cv.waitKey(1) == ord('q'):
         break
