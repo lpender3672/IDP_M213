@@ -66,6 +66,21 @@
 
 \quad Therefore, the best option we settled on was the simple 2-wheeled system, since it would be the simplest to manufacture. We plan to use the larger wheels so that our rotary encoder would be more accurate. The wheels will be connected to the higher torque lower RPM motor via the given motor adaptors. The higher torque will help in the robot going up the ramp. The motors will be attached to the robot by a metal bracket and bolting it onto the threads on the aluminium plate on the motor. We also will place a ball castor at the other end of the chassis to ensure the robot remains stable as it ascends the ramp.
 
+\begin{table}[]
+    \centering
+    \begin{tabular}{|c|p{5cm}|p{5cm}|}
+        \hline
+        Idea & Advantages & Disadvantages \\
+        \hline
+        2-wheeled + Castor wheel & Fast to manufacture quickly& Might be harder to turn \\
+        3-wheeled differential-drive & Easy to manufacture quickly & Might slip since wheels are not of same size \\
+        4-wheeled tank drive system & Very reliable & More motors required and hard to sync the motor's rpm ratio due to different sized wheels \\
+        \hline
+    \end{tabular}
+    \caption{Drive System Comparison}
+    \label{tab:drive_comp}
+\end{table}
+
 \subsection{Chassis}
 \quad After looking at the sizes of the various components (such as the Arduino and the battery pack) that we needed to fit onto the chassis we make a rough guess of a dimension of the base of the chassis to be $250mm \times 140mm$. The Arduino and the battery pack will be fitted under the chassis so that the center of gravity of the robot will be lower, further reducing the chances that the robot flips when going up the ramp.
 
