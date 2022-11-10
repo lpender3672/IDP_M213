@@ -24,7 +24,7 @@ window_detection_name = 'Object Detection'
 # https://docs.opencv.org/3.4/da/d97/tutorial_threshold_inRange.html
 
 max_value = 255
-max_value_H = 255
+max_value_H = 180
 low_H = 0
 low_S = 0
 low_V = 0
@@ -198,11 +198,12 @@ while True:
     tresh_path = cv.inRange(corrected, (0, 0, 190), (255, 16, 255))
     tresh_G = cv.inRange(corrected, (66, 50, 70), (85, 255, 255))
     correctedRGB = distOR.copy()
-    rconv = cv.cvtColor(correctedRGB, cv.COLOR_BGR2LAB)
-    rconv = cv.cvtColor(correctedRGB, cv.COLOR_BGR2YCrCb)    
+    # rconv = cv.cvtColor(correctedRGB, cv.COLOR_BGR2LAB)
+    # rconv = cv.cvtColor(correctedRGB, cv.COLOR_BGR2YCrCb)
+    rconv = corrected.copy() #HSV    
     # tresh_R = cv.inRange(rconv, (110, 108, 101), (183, 186, 139))  #use LAB
-    tresh_R = cv.inRange(rconv, (0, 144, 105), (255, 212, 162)) #use ycbcr
-    # tresh_R = cv.inRange(corrected, (163, 34, 47), (204, 180, 255)) #use HSV
+    # tresh_R = cv.inRange(rconv, (0, 144, 105), (255, 212, 162)) #use ycbcr
+    tresh_R = cv.inRange(corrected, (163, 34, 47), (204, 180, 255)) #use HSV
     tresh_O = cv.inRange(corrected, (27, 91, 182), (52, 255, 255))
 
     
@@ -213,9 +214,9 @@ while True:
     # tresh_R = cv.erode(tresh_R, rkernel, iterations=1)
 
     tresh_path = cv.GaussianBlur(tresh_path, (15, 15), 1);
-    rkernel = np.ones((7,7), np.uint8)
-    tresh_path = cv.dilate(tresh_path, rkernel, iterations=1) 
+    rkernel = np.ones((3,3), np.uint8)    
     tresh_path = cv.erode(tresh_path, rkernel, iterations=1)
+    tresh_path = cv.dilate(tresh_path, rkernel, iterations=1) 
 
     tresh_G = cv.GaussianBlur(tresh_G, (15,15), 1);
     rkernel = np.ones((30, 30), np.uint8)
