@@ -8,7 +8,9 @@ import numpy as np
 from icecream import ic
 from timeit import default_timer as timer
 
-cap = cv.VideoCapture("http://localhost:8081/stream/video.mjpeg")
+# cap = cv.VideoCapture("http://localhost:8081/stream/video.mjpeg")
+cap = cv.VideoCapture("2022-11-10 09-09-04.mp4")
+cap = cv.VideoCapture("2022-11-10 09-07-51.mp4")
 
 
 # https://github.com/kaustubh-sadekar/VirtualCam/blob/master/GUI.py
@@ -22,11 +24,11 @@ window_detection_name = 'Object Detection'
 # https://docs.opencv.org/3.4/da/d97/tutorial_threshold_inRange.html
 
 max_value = 255
-max_value_H = 360//2
+max_value_H = 255
 low_H = 0
 low_S = 0
 low_V = 0
-high_H = max_value_H
+high_H = max_value
 high_S = max_value
 high_V = max_value
 window_detection_name = 'Object Detection'
@@ -121,7 +123,8 @@ while True:
     start = timer()
     # Capture frame-by-frame
     ret, frame = cap.read()
-
+    frame = frame[0:height, 0:width]
+    
     # X = -cv.getTrackbarPos("X",WINDOW_NAME) + 500
     # Y = -cv.getTrackbarPos("Y",WINDOW_NAME) + 500
     # Z = -cv.getTrackbarPos("Z",WINDOW_NAME)
@@ -192,21 +195,25 @@ while True:
 
 
     corrected = cv.cvtColor(distOR, cv.COLOR_BGR2HSV)
-    tresh_path = cv.inRange(corrected, (0, 0, 228), (255, 16, 255))
-    tresh_G = cv.inRange(corrected, (66, 169, 100), (85, 255, 255))
-    rconv = cv.cvtColor(corrected, cv.COLOR_BGR2LAB)
-    tresh_R = cv.inRange(rconv, (154, 132, 111), (180, 157, 172))  
-    # tresh_O = cv.inRange(corrected, (low_H, low_S, low_V), (high_H, high_S, high_V))
+    tresh_path = cv.inRange(corrected, (0, 0, 190), (255, 16, 255))
+    tresh_G = cv.inRange(corrected, (66, 50, 70), (85, 255, 255))
+    correctedRGB = distOR.copy()
+    rconv = cv.cvtColor(correctedRGB, cv.COLOR_BGR2LAB)
+    rconv = cv.cvtColor(correctedRGB, cv.COLOR_BGR2YCrCb)    
+    # tresh_R = cv.inRange(rconv, (110, 108, 101), (183, 186, 139))  #use LAB
+    tresh_R = cv.inRange(rconv, (0, 144, 105), (255, 212, 162)) #use ycbcr
+    # tresh_R = cv.inRange(corrected, (163, 34, 47), (204, 180, 255)) #use HSV
     tresh_O = cv.inRange(corrected, (27, 91, 182), (52, 255, 255))
 
     
-    tresh_R = cv.GaussianBlur(tresh_R, (15,15), 1);
-    rkernel = np.ones((30,30), np.uint8)
+    tresh_R = cv.GaussianBlur(tresh_R, (5,5), 1);
+    rkernel = np.ones((7,7), np.uint8)
+    tresh_R = cv.erode(tresh_R, None, iterations = 3)
     tresh_R = cv.dilate(tresh_R, rkernel, iterations=1) 
-    tresh_R = cv.erode(tresh_R, rkernel, iterations=1)
+    # tresh_R = cv.erode(tresh_R, rkernel, iterations=1)
 
     tresh_path = cv.GaussianBlur(tresh_path, (15, 15), 1);
-    rkernel = np.ones((11,11), np.uint8)
+    rkernel = np.ones((7,7), np.uint8)
     tresh_path = cv.dilate(tresh_path, rkernel, iterations=1) 
     tresh_path = cv.erode(tresh_path, rkernel, iterations=1)
 
@@ -243,7 +250,7 @@ while True:
         M = cv.moments(cnt)
         cx = int(M['m10']/M['m00'])
         cy = int(M['m01']/M['m00'])
-        cv.circle(rc, (cx,cy), radius=3, color=(0, 255, 0), thickness=-1)
+        cv.circle(rc, (cx,cy), radius=3, color=(0, 0, 255), thickness=-1)
         map = cv.circle(map, (cx,cy), radius=3, color=(0, 0, 255), thickness=-1)
 
     
@@ -295,10 +302,13 @@ while True:
         map = cv.circle(map, EP, radius=3, color=(0, 255, 255), thickness=-1)
     
 
-            
+    rcv = cv.split(rconv)    
 
     # Display the resulting frame
-    cv.imshow('frame', dist)
+    cv.imshow('frame', tresh_R)
+    cv.imshow("red0", rcv[0])
+    cv.imshow("red1", rcv[1])
+    cv.imshow("red2", rcv[2])
     cv.imshow("map", map)
     end = timer()
     # ic(end-start)
