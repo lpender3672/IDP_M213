@@ -36,11 +36,11 @@
         Name &  CRsid & College & Lab Group \\
         \hline
         Matthew Hendricks & mah237 & Pembroke & 35 \\
-        Louis Pender & lwp256 & & \\
-        Hor Ye Heng & yhh35 & & \\
-        Wen Yian & yw543 & & \\
+        Louis Pender & lwp256 & Lucy Cavendish & 17 \\
+        Hor Ye Heng & yhh35 & Peterhouse & 30 \\
+        Wen Yian & yw543 & Pembroke & 39 \\
         Yiheng Liu & yl827 & Lucy Cavendish & 13 \\
-        Yuge & & & \\
+        Zhang Yuge & yz754 & Peterhouse & 30 \\
         \hline
     \end{tabular}
     \caption{Coversheet information}
@@ -63,7 +63,7 @@
     \item 1st Competition only manual demonstration of block identification (block may be brought up to stationary robot by hand to demonstrate correct detection reliably) +10
 \end{itemize}
 
-\quad The arena layout can be seen in Figure \ref{fig:arena}. The robot must be able to traverse the ramp and tunnel, detect and deliver the blocks to the correct area. By traversing the ramp first before picking up the block, the robot can just push the block on the floor without lifting it which is far easier.
+\quad The arena layout can be seen in Figure \Cref{fig:arena}. The robot must be able to traverse the ramp and tunnel, detect and deliver the blocks to the correct area. By traversing the ramp first before picking up the block, the robot can just push the block on the floor without lifting it which is far easier.
 
 \quad To meet these criteria in the small timeline given our group was organised into mechanical, electrical and software teams. We also used a variety of tools to help us with our project management, design and collaberation.
 
@@ -148,7 +148,6 @@ The chassis design for the prototype has been designed to be very modular, we ha
 
 \section{Software}
 
-\section{Software}
 \quad The software team consists of Yian.W (yw543) and Yuge.Z (yz754). We plan to employ finite state machine to drive the overall flow, and identified four main procedures that we would work on for the project, namely line following, distance tracking(below tunnel), block detection and pick-up/lay-off as seen below. 
 \begin{figure}[!h]
     \centering
@@ -165,7 +164,6 @@ The chassis design for the prototype has been designed to be very modular, we ha
 \subsection{Block collection algorithms}
 \quad Block collection could be broken down into two main stages: detection of the density of the block and pick-up/lay-off procedure. The block detection stage will be initiated when a distance sensor placed at the front read a value beneath a particular threshold, e.g. 5cm. To determine the density of the block, the ultrasonic sensor is used to produce analog readings that correspond to high/low density block. The outputs would be the ledstate of pins corresponding to the red/green LED respectively. Upon flashing signals, the pick-up procedure would be initiated and a PWM signal would be sent as an output to the Servo to clamp the block. The lay-off procedure is similar. 
 
-\subsection{Arduino Firmware}
 % Yuge and Steve please fill in your work here %
 \subsection{OpenCV}
 \subsubsection{Overall Plan}
@@ -209,7 +207,7 @@ We plan to use UDP packets to stream commands to the Arduino on the robot, which
 \begin{figure}[!h]
     \centering
     \includegraphics[width=0.8\textwidth]{assets/arena.png}
-    \caption{Arena picture}
+    \caption{Arena layout}
     \label{fig:arena}
 \end{figure}
 
