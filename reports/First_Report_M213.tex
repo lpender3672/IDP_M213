@@ -144,8 +144,27 @@ The chassis design for the prototype has been designed to be very modular, we ha
     \begin{description}[leftmargin=-0.2in]
         \item[] Distance sensor is tested and work fine for distance above 10cm. Above 10cm, the analog input from the distance sensor is proportional to the distance form obstacle and is set up for software team to test.
     \end{description}
-\end{enumerate}
+
+
 \section{Software}
+
+\section{Software}
+\quad The software team consists of Yian.W (yw543) and Yuge.Z (yz754). We plan to employ finite state machine to drive the overall flow, and identified four main procedures that we would work on for the project, namely line following, distance tracking(below tunnel), block detection and pick-up/lay-off as seen below. 
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/software_overview.png}
+    \caption{Software Overview}
+    \label{fig:software_overview}
+\end{figure} 
+
+\subsection{Exploration and navigation alogrithms}
+\quad quad Our group decided on using the line-following method to navigate the robot. By placing 3 OPB sensors, we could obtain different analog reading values corresponding to the color of the surfaces under various scenarios. Specifically with regards to interface to electronics, high voltage readings correspond to black surfaces, and lower voltage readings correspond to that of white line, allowing deviation from the line to be detected. We could change outputs as that of the speed of each motor, such that it would make necessary adjustments/turns under different scenarios. 
+
+\quad In addition, we plan to use inputs from an ultrasonic sensor to determine the distance from one side of the wall, and maintain navigation process when there is no line to follow beneath the tunnel. 
+
+\subsection{Block collection algorithms}
+\quad Block collection could be broken down into two main stages: detection of the density of the block and pick-up/lay-off procedure. The block detection stage will be initiated when a distance sensor placed at the front read a value beneath a particular threshold, e.g. 5cm. To determine the density of the block, the ultrasonic sensor is used to produce analog readings that correspond to high/low density block. The outputs would be the ledstate of pins corresponding to the red/green LED respectively. Upon flashing signals, the pick-up procedure would be initiated and a PWM signal would be sent as an output to the Servo to clamp the block. The lay-off procedure is similar. 
+
 \subsection{Arduino Firmware}
 % Yuge and Steve please fill in your work here %
 \subsection{OpenCV}
@@ -221,6 +240,7 @@ We plan to use UDP packets to stream commands to the Arduino on the robot, which
     \caption{Assembled Prototype}
     \label{fig:assembled_prototype}
 \end{figure}
+
 
 
 \end{document}
