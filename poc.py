@@ -197,19 +197,24 @@ while True:
     corrected = cv.cvtColor(distOR, cv.COLOR_BGR2HSV)
     tresh_path = cv.inRange(corrected, (0, 0, 190), (255, 16, 255))
     tresh_G = cv.inRange(corrected, (66, 50, 70), (85, 255, 255))
-    correctedRGB = distOR.copy()
+    correctedINV = cv.cvtColor(cv.bitwise_not(distOR), cv.COLOR_BGR2HSV)
     # rconv = cv.cvtColor(correctedRGB, cv.COLOR_BGR2LAB)
     # rconv = cv.cvtColor(correctedRGB, cv.COLOR_BGR2YCrCb)
-    rconv = corrected.copy() #HSV    
+    rconv = correctedINV.copy() #HSV 
+    (hr,sr,vr) = cv.split(rconv)
+    # ic(rconv)
+    hr = np.add(hr, 30)
+    rconv = cv.merge((hr, sr, vr))
     # tresh_R = cv.inRange(rconv, (110, 108, 101), (183, 186, 139))  #use LAB
     # tresh_R = cv.inRange(rconv, (0, 144, 105), (255, 212, 162)) #use ycbcr
-    tresh_R = cv.inRange(corrected, (163, 34, 47), (204, 180, 255)) #use HSV
+    tresh_R = cv.inRange(rconv, (95, 49, 50), (126, 181, 255)) #use HSV
+    # tresh_R = cv.inRange(rconv, (low_H, low_S, low_V), (high_H, high_S, high_V))
     tresh_O = cv.inRange(corrected, (27, 91, 182), (52, 255, 255))
 
     
     tresh_R = cv.GaussianBlur(tresh_R, (5,5), 1);
-    rkernel = np.ones((7,7), np.uint8)
-    tresh_R = cv.erode(tresh_R, None, iterations = 3)
+    rkernel = np.ones((3,3), np.uint8)
+    tresh_R = cv.erode(tresh_R, None, iterations = 1)
     tresh_R = cv.dilate(tresh_R, rkernel, iterations=1) 
     # tresh_R = cv.erode(tresh_R, rkernel, iterations=1)
 
@@ -219,9 +224,10 @@ while True:
     tresh_path = cv.dilate(tresh_path, rkernel, iterations=1) 
 
     tresh_G = cv.GaussianBlur(tresh_G, (15,15), 1);
-    rkernel = np.ones((30, 30), np.uint8)
-    tresh_G = cv.dilate(tresh_G, rkernel, iterations=1) 
+    rkernel = np.ones((5,5), np.uint8)
     tresh_G = cv.erode(tresh_G, rkernel, iterations=1)
+    tresh_G = cv.dilate(tresh_G, rkernel, iterations=1) 
+    
 
     tresh_O = cv.GaussianBlur(tresh_O, (37, 37), 1);
     rkernel = np.ones((11, 11), np.uint8)
@@ -281,7 +287,7 @@ while True:
 
 
     #find points that are within the obstacle so we can interpolate
-    tresh_OD = cv.dilate(tresh_O, None, iterations = 3)
+    tresh_OD = cv.dilate(tresh_O, None, iterations = 5)
     cntsO,_ = cv.findContours(tresh_OD.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
     cntsP,_ = cv.findContours(pathCornerStackF.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
     pc = cv.cvtColor(pathCornerStackF, cv.COLOR_GRAY2BGR)
@@ -307,9 +313,9 @@ while True:
 
     # Display the resulting frame
     cv.imshow('frame', tresh_R)
-    cv.imshow("red0", rcv[0])
-    cv.imshow("red1", rcv[1])
-    cv.imshow("red2", rcv[2])
+    # cv.imshow("red0", rcv[0])
+    # cv.imshow("red1", rcv[1])
+    # cv.imshow("red2", rcv[2])
     cv.imshow("map", map)
     end = timer()
     # ic(end-start)
