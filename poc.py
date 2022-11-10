@@ -10,15 +10,12 @@ from timeit import default_timer as timer
 
 # cap = cv.VideoCapture("http://localhost:8081/stream/video.mjpeg")
 cap = cv.VideoCapture("2022-11-10 09-09-04.mp4")
-cap = cv.VideoCapture("2022-11-10 09-07-51.mp4")
+# cap = cv.VideoCapture("2022-11-10 09-07-51.mp4")
 
 
 # https://github.com/kaustubh-sadekar/VirtualCam/blob/master/GUI.py
-
 def nothing(x):
     pass
-
-
 window_detection_name = 'Object Detection'
 
 # https://docs.opencv.org/3.4/da/d97/tutorial_threshold_inRange.html
@@ -84,7 +81,6 @@ cv.createTrackbar(high_S_name, window_detection_name , high_S, max_value, on_hig
 cv.createTrackbar(low_V_name, window_detection_name , low_V, max_value, on_low_V_thresh_trackbar)
 cv.createTrackbar(high_V_name, window_detection_name , high_V, max_value, on_high_V_thresh_trackbar)
 
-on_low_V_thresh_trackbar(228)
 
 
 
@@ -207,7 +203,7 @@ while True:
     rconv = cv.merge((hr, sr, vr))
     # tresh_R = cv.inRange(rconv, (110, 108, 101), (183, 186, 139))  #use LAB
     # tresh_R = cv.inRange(rconv, (0, 144, 105), (255, 212, 162)) #use ycbcr
-    tresh_R = cv.inRange(rconv, (95, 49, 50), (126, 181, 255)) #use HSV
+    tresh_R = cv.inRange(rconv, (80, 33, 41), (125, 255, 243)) #use HSV
     # tresh_R = cv.inRange(rconv, (low_H, low_S, low_V), (high_H, high_S, high_V))
     tresh_O = cv.inRange(corrected, (27, 91, 182), (52, 255, 255))
 
