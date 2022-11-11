@@ -261,7 +261,7 @@ def pathFind_BFS(s, e, grid):
 
     return None  # no path found
 
-# @numba.njit
+
 def pathfindBFS(s, e, grid):
     # start = time()
     visited = np.zeros(np.shape(grid))
