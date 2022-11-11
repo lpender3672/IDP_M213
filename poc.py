@@ -8,9 +8,9 @@ import numpy as np
 from icecream import ic
 from timeit import default_timer as timer
 
-# cap = cv.VideoCapture("http://localhost:8081/stream/video.mjpeg")
-cap = cv.VideoCapture("2022-11-10 09-09-04.mp4")
-cap = cv.VideoCapture("2022-11-10 09-07-51.mp4")
+cap = cv.VideoCapture("http://localhost:8081/stream/video.mjpeg")
+# cap = cv.VideoCapture("2022-11-10 09-09-04.mp4")
+# cap = cv.VideoCapture("2022-11-10 09-07-51.mp4")
 
 
 # https://github.com/kaustubh-sadekar/VirtualCam/blob/master/GUI.py
@@ -89,7 +89,8 @@ height = 760
 
 def acqFrame():
     ret, frame = cap.read()
-    frame = frame[0:height, 0:width]      
+    frame = frame[0:height, 0:width] 
+    # ic("acq")     
     # if frame is read correctly ret is True
     if not ret:
         raise Exception("Can't receive frame (stream end?). Exiting ...")
@@ -131,10 +132,15 @@ def find_nearest_bfs(s, grid):
         # ic(adj_nodes
         for item in adj_nodes:
             # ic(item)            
+            if item[1] > np.shape(grid)[0] or item[0] > np.shape(grid)[1]:
+                ic("Tried to access array out of bounds")
+                # ic(item)
+                continue
             if visited[item[1], item[0]] == 0 and item not in added: #if not visited
-                #ic(item)
+                # ic(item)
                 queue.append((item, path[:]))
                 added.add(item)
+            
         # ic(queue)
         # break
 
@@ -235,6 +241,7 @@ for r in range(distFrames):
             pt1 = (int(x0 + 1000*(-b)), int(y0 + 1000*(a)))
             pt2 = (int(x0 - 1000*(-b)), int(y0 - 1000*(a)))
             cv.line(distO, pt1, pt2, (0,0,255), 3, cv.LINE_AA)
+            cv.imshow("line", distO)
             try:
                 rotTheta[r] += (pt1[1]-pt2[1])/(pt1[0]-pt2[0])
             except ZeroDivisionError:
@@ -246,6 +253,8 @@ for r in range(distFrames):
 rotThetaAvg = np.average(rotTheta)
 
 rotM = cv.getRotationMatrix2D((width/2, height/2), rotThetaAvg * 180 / np.pi, 0.8)
+ic(rotM)
+# cv.imshow("test",acqCorrectedFrame(distCoeff, rotM, 2, 5))
 
 ##cache map
 mapFrames = 20 #use 20 frames to get a map and cache it
@@ -257,7 +266,7 @@ path = []
 
 for m in range(mapFrames):
 
-    distOR = acqCorrectedFrame(distCoeff, rotM, 2, 5)
+    distOR = acqCorrectedFrame(distCoeff, rotM, 2, 5)    
 
     corrected = cv.cvtColor(distOR, cv.COLOR_BGR2HSV)
     tresh_path = cv.inRange(corrected, (0, 0, 180), (255, 16, 255))
@@ -272,8 +281,9 @@ for m in range(mapFrames):
     # tresh_R = cv.inRange(rconv, (110, 108, 101), (183, 186, 139))  #use LAB
     # tresh_R = cv.inRange(rconv, (0, 144, 105), (255, 212, 162)) #use ycbcr
     tresh_R = cv.inRange(rconv, (80, 33, 41), (125, 255, 243)) #use HSV
-    # tresh_R = cv.inRange(rconv, (low_H, low_S, low_V), (high_H, high_S, high_V))
+    tresh_B = cv.inRange(corrected, (low_H, low_S, low_V), (high_H, high_S, high_V))
     tresh_O = cv.inRange(corrected, (27, 91, 182), (52, 255, 255))
+
 
     
     # tresh_R = cv.GaussianBlur(tresh_R, (5,5), 1);
@@ -301,6 +311,8 @@ for m in range(mapFrames):
     rkernel = np.ones((15,5), np.uint8) #asymmetrical dilate to make the endpoint detection more reliable
     # tresh_O = cv.erode(tresh_O, rkernel, iterations=1)
     tresh_O = cv.dilate(tresh_O, rkernel, iterations=3) 
+
+    
 
     # find green square
     cnts,_ = cv.findContours(tresh_G.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
@@ -374,6 +386,8 @@ for m in range(mapFrames):
                 obsEndPoint.append((px, py))
     tunnelEndXY.append(obsEndPoint)
 
+    # cv.imshow("test2", acqFrame())
+
 #compute medians
 redXY = np.median(redXY, axis=0).astype(int)
 greenXY = np.median(greenXY, axis=0).astype(int)
@@ -405,7 +419,7 @@ while True:
 
     #OPENCV USES Y,X!!!!!!! (in the loop)
     targetPos = (256,320) #(x,y)
-    cv.imshow("map", map)
+    # cv.imshow("map", map)
     # ic(path[313,248])
     route = find_nearest_bfs(targetPos, path.copy())
     # ic(route)
