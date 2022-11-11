@@ -179,7 +179,6 @@ rotM = cv.getRotationMatrix2D((width/2, height/2), rotThetaAvg * 180 / np.pi, 0.
 
 ##cache map
 mapFrames = 20 #use 20 frames to get a map and cache it
-
 #targets
 redXY = []
 greenXY = []
@@ -304,8 +303,7 @@ for m in range(mapFrames):
             if d == 1.0:
                 obsEndPoint.append((px, py))
     tunnelEndXY.append(obsEndPoint)
-    
-    
+
 #compute medians
 redXY = np.median(redXY, axis=0).astype(int)
 greenXY = np.median(greenXY, axis=0).astype(int)
@@ -324,21 +322,19 @@ for i in range(len(pathCnts)): #find largest contour by extents
         maxPath = i
 pathMask = cv.drawContours(pathMask, pathCnts,i, color=(255,255,255))
 pathMask = cv.dilate(pathMask, None, iterations=2)
-# ic(np.shape(path))
-# ic(np.shape(pathMask))
-# ic(pathMask)
-
-path = cv.bitwise_and(path, pathMask.astype(np.uint8))
+path = cv.bitwise_and(path, pathMask.astype(np.uint8)) #mask path
  
-while True:
-    
+while True:    
 
     map = path.copy()
     map = cv.cvtColor(map, cv.COLOR_GRAY2BGR)
     map = drawDiagnosticPoint(map, redXY, (0,0,255))
     map = drawDiagnosticPoint(map, greenXY, (0,255,0))
     map = drawDiagnosticPoint(map, tunnelEndXY[0], (0,255,255))   
-    map = drawDiagnosticPoint(map, tunnelEndXY[1], (0,255,255))      
+    map = drawDiagnosticPoint(map, tunnelEndXY[1], (0,255,255)) 
+
+    targetPos = (250, 325)
+    robotPos = (253, 50)     
 
     # Display the resulting frame
     cv.imshow('frame', tresh_O)
