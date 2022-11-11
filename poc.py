@@ -268,7 +268,7 @@ for m in range(mapFrames):
     
     
     #find tunnel
-    cnts,hie = cv.findContours(tresh_O.copy(), cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+    cnts,_ = cv.findContours(tresh_O.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
     oc = cv.cvtColor(tresh_O, cv.COLOR_GRAY2BGR)
     cv.drawContours(oc, cnts, -1, (0,255,0), 2)
 
@@ -312,6 +312,23 @@ greenXY = np.median(greenXY, axis=0).astype(int)
 path = np.median(path, axis=0).astype(np.uint8)
 tunnelEndXY = np.median(tunnelEndXY, axis=0).astype(int)
 
+#get path mask
+pathMask = np.zeros(np.shape(path))
+pathCnts,_ = cv.findContours(path, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
+maxPathMoment = 0
+maxPath = 0
+for i in range(len(pathCnts)): #find largest contour by extents
+    currMoment = cv.moments(pathCnts[i])["m00"]
+    if currMoment > maxPathMoment:
+        maxPathMoment = currMoment
+        maxPath = i
+pathMask = cv.drawContours(pathMask, pathCnts,i, color=(255,255,255))
+pathMask = cv.dilate(pathMask, None, iterations=2)
+# ic(np.shape(path))
+# ic(np.shape(pathMask))
+# ic(pathMask)
+
+path = cv.bitwise_and(path, pathMask.astype(np.uint8))
  
 while True:
     
