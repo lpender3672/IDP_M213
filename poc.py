@@ -117,7 +117,7 @@ def find_nearest_bfs(s, grid):
 
     while len(queue) > 0:
         (node, path) = queue.pop(0)
-        ic(node)
+        #ic(node)
         # ic(np.amax(grid))
         # ic(visited[node[0], node[1]])
         path.append(node)
@@ -132,13 +132,51 @@ def find_nearest_bfs(s, grid):
         for item in adj_nodes:
             # ic(item)            
             if visited[item[1], item[0]] == 0 and item not in added: #if not visited
-                ic(item)
+                #ic(item)
                 queue.append((item, path[:]))
                 added.add(item)
         # ic(queue)
         # break
 
     return path  # no path found
+
+def pathfindBFS(s, e, grid):
+    visited = np.zeros(np.shape(grid))
+    # ic(np.shape(visited))
+    queue = [(s, [])]  # start point, empty path
+    added = set()
+
+    while len(queue) > 0:
+        (node, path) = queue.pop(0)
+        #ic(node)
+        # ic(np.amax(grid))
+        # ic(visited[node[0], node[1]])
+        path.append(node)
+        visited[node[1], node[0]] = 1 #mark visited
+
+        if node == e:
+            return path
+            break
+
+        possible_adj_nodes = [(node[0], node[1]-1), (node[0], node[1]+1), (node[0]+1, node[1]), (node[0]-1, node[1]), (node[0]+1, node[1]+1), (node[0]+1, node[1]-1), (node[0]-1, node[1]+1), (node[0]-1, node[1]-1)]
+        adj_nodes = []
+        for node in possible_adj_nodes: #only append if we can go there
+            if(grid[node[1], node[0]]) == 255:
+                adj_nodes.append(node)
+        # ic(adj_nodes)
+        for item in adj_nodes:
+            # ic(item)            
+            if visited[item[1], item[0]] == 0 and item not in added: #if not visited
+                #ic(item)
+                queue.append((item, path[:]))
+                added.add(item)
+        # ic(queue)
+        # break
+
+    return path  # no path found
+
+    
+    
 
 #distortion correction
 
@@ -373,12 +411,18 @@ while True:
     # ic(route)
     for point in route:
         map = drawDiagnosticPoint(map, point, (255,0,0)) 
-    robotPos = (240,39) 
+    targetEntry = route[-1]
+    robotPos = (240,50) 
     route = find_nearest_bfs(robotPos, path.copy())
     map = drawDiagnosticPoint(map, robotPos, (255,0,0)) 
     for point in route:  
         map = drawDiagnosticPoint(map, point, (255,255,0)) 
+    robotEntry = route[-1]
 
+    route = pathfindBFS(robotEntry, targetEntry, path.copy())
+    for point in route:  
+        map = drawDiagnosticPoint(map, point, (3, 20, 220)) 
+    # ic(len(route))
     
   
     # Display the resulting frame
