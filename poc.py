@@ -11,8 +11,8 @@ from timeit import default_timer as timer
 # cap = cv.VideoCapture("http://localhost:8081/stream/video.mjpeg")
 # cap = cv.VideoCapture("2022-11-10 09-09-04.mp4")
 # cap = cv.VideoCapture("2022-11-10 09-07-51.mp4")
-# cap = cv.VideoCapture("2022-11-11 16-00-12.mp4")
-cap = cv.VideoCapture("2022-11-11 16-33-38.mp4")
+cap = cv.VideoCapture("2022-11-11 16-00-12.mp4")
+# cap = cv.VideoCapture("2022-11-11 16-33-38.mp4")
 
 
 # https://github.com/kaustubh-sadekar/VirtualCam/blob/master/GUI.py
@@ -243,7 +243,7 @@ for r in range(distFrames):
             pt1 = (int(x0 + 1000*(-b)), int(y0 + 1000*(a)))
             pt2 = (int(x0 - 1000*(-b)), int(y0 - 1000*(a)))
             cv.line(distO, pt1, pt2, (0,0,255), 3, cv.LINE_AA)
-            cv.imshow("line", distO)
+            # cv.imshow("line", distO)
             try:
                 rotTheta[r] += (pt1[1]-pt2[1])/(pt1[0]-pt2[0])
                 # ic(theta)
@@ -396,7 +396,7 @@ for m in range(mapFrames):
     # tunnelEndXY = np.sort(tunnelEndXY, axis = -1) #sort to remove spurs
 
 
-ic(tunnelEndXY)
+# ic(tunnelEndXY)
 
 #compute medians
 redXY = np.median(redXY, axis=0).astype(int)
@@ -404,7 +404,7 @@ greenXY = np.median(greenXY, axis=0).astype(int)
 path = np.median(path, axis=0).astype(np.uint8)
 tunnelEndXY = np.median(tunnelEndXY, axis=0).astype(int)
 
-ic(tunnelEndXY)
+# ic(tunnelEndXY)
 
 #get path mask
 pathMask = np.zeros(np.shape(path))
@@ -419,8 +419,25 @@ for i in range(len(pathCnts)): #find largest contour by extents
 pathMask = cv.drawContours(pathMask, pathCnts,i, color=(255,255,255))
 pathMask = cv.dilate(pathMask, None, iterations=2)
 path = cv.bitwise_and(path, pathMask.astype(np.uint8)) #mask path
- 
+
+
+
 while True: 
+    targets = []
+    #find new blocks
+    distOR = acqCorrectedFrame(distCoeff, rotM, 2, 5)
+    corrected = cv.cvtColor(distOR, cv.COLOR_BGR2HSV)
+    tresh_block = cv.inRange(corrected, (100, 141, 35), (163, 255, 255))    
+    tresh_block = cv.dilate(tresh_block, (10,10), iterations=3)
+    tresh_block = cv.medianBlur(tresh_block, 3)
+    cnts, _ = cv.findContours(tresh_block, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+    # ic(len(cnts))
+    for cnt in cnts:
+        # ic(cv.moments(cnt)['m00'])
+        M = cv.moments(cnt)
+        if M["m00"] < 90 and M["m00"] > 30: #TODO: replace with better filtering
+            targets.append((int(M['m10'] / (M['m00'] + 1e-5)), int(M['m01'] / (M['m00'] + 1e-5))))
+
 
     map = path.copy()
     map = cv.cvtColor(map, cv.COLOR_GRAY2BGR)
@@ -428,9 +445,11 @@ while True:
     map = drawDiagnosticPoint(map, greenXY, (0,255,0))
     map = drawDiagnosticPoint(map, tunnelEndXY[0], (0,255,255))   
     map = drawDiagnosticPoint(map, tunnelEndXY[1], (0,255,255)) 
+    for target in targets:
+        drawDiagnosticPoint(map, target, (255, 125, 0))
 
     #OPENCV USES Y,X!!!!!!! (in the loop)
-    targetPos = (256,320) #(x,y)
+    targetPos = targets[0] #(x,y)
     # cv.imshow("map", map)
     # ic(path[313,248])
     route = find_nearest_bfs(targetPos, path.copy())
@@ -452,8 +471,8 @@ while True:
     
   
     # Display the resulting frame
-    # cv.imshow('frame', path)
-    # cv.imshow("red0", rcv[0])
+    cv.imshow('frame', tresh_block)
+    cv.imshow("red0", distOR)
     # cv.imshow("red1", pc)
     # cv.imshow("red2", oc)
     cv.imshow("map", map)
