@@ -3,10 +3,11 @@
 
 
 import math
+import numba
 import cv2 as cv
 import numpy as np
 from icecream import ic
-from timeit import default_timer as timer
+from time import time
 
 # cap = cv.VideoCapture("http://localhost:8081/stream/video.mjpeg")
 # cap = cv.VideoCapture("2022-11-10 09-09-04.mp4")
@@ -112,11 +113,15 @@ def drawDiagnosticPoint(frame, point, color):
     return cv.circle(frame, point, radius=1, color=color, thickness=-1)
 
 # https://stackoverflow.com/questions/55316735/shortest-path-in-a-grid-using-bfs
-def find_nearest_bfs(s, grid):
+# @numba.jit
+def find_nearest_bfs(s: tuple, grid):
+    # start = time()
     visited = np.zeros(np.shape(grid))
+    added = np.zeros(np.shape(grid))
     # ic(np.shape(visited))
     queue = [(s, [])]  # start point, empty path
-    added = set()
+    # queue = [((int(i), int(i)),[(int(i), int(i)) for i in range(0)]) for i in range(0)]
+    # added = set()
 
     while len(queue) > 0:
         (node, path) = queue.pop(0)
@@ -127,6 +132,8 @@ def find_nearest_bfs(s, grid):
         visited[node[1], node[0]] = 1 #mark visited
 
         if grid[node[1], node[0]] == 255:
+            # end = time()
+            # ic("Nearest Entry BFS takes " + str(end-start))
             return path
             break
 
@@ -135,24 +142,27 @@ def find_nearest_bfs(s, grid):
         for item in adj_nodes:
             # ic(item)            
             if item[1] >= np.shape(grid)[0] or item[0] >= np.shape(grid)[1]:
-                ic("Tried to access array out of bounds")
-                ic(item)
+                # print("Tried to access array out of bounds")
+                # ic(item)
                 continue
-            if visited[item[1], item[0]] == 0 and item not in added: #if not visited
+            if visited[item[1], item[0]] == 0 and added[item[1], item[0]] == 0: #if not visited
                 # ic(item)
                 queue.append((item, path[:]))
-                added.add(item)
+                # added.add(item)
+                added[item[1], item[0]] = 1
             
         # ic(queue)
         # break
 
     return path  # no path found
 
+# @numba.njit
 def pathfindBFS(s, e, grid):
+    # start = time()
     visited = np.zeros(np.shape(grid))
     # ic(np.shape(visited))
     queue = [(s, [])]  # start point, empty path
-    added = set()
+    added = np.zeros(np.shape(grid))
 
     while len(queue) > 0:
         (node, path) = queue.pop(0)
@@ -163,6 +173,8 @@ def pathfindBFS(s, e, grid):
         visited[node[1], node[0]] = 1 #mark visited
 
         if node == e:
+            # end = time()
+            # ic("Pathfind BFS takes " + str(end-start))
             return path
             break
 
@@ -174,12 +186,13 @@ def pathfindBFS(s, e, grid):
         # ic(adj_nodes)
         for item in adj_nodes:
             # ic(item)            
-            if visited[item[1], item[0]] == 0 and item not in added: #if not visited
+            if visited[item[1], item[0]] == 0 and added[item[1], item[0]] == 0: #if not visited
                 #ic(item)
                 queue.append((item, path[:]))
-                added.add(item)
+                added[item[1], item[0]] = 1
         # ic(queue)
         # break
+    
 
     return path  # no path found
 
@@ -423,6 +436,7 @@ path = cv.bitwise_and(path, pathMask.astype(np.uint8)) #mask path
 
 
 while True: 
+    start = time()
     targets = []
     #find new blocks
     distOR = acqCorrectedFrame(distCoeff, rotM, 2, 5)
@@ -480,6 +494,8 @@ while True:
     # ic(end-start)
     if cv.waitKey(1) == ord('q'):
         break
+    end = time()
+    print("Current FPS: " + str(1/(end-start)))
 # When everything done, release the capture
 cap.release()
 cv.destroyAllWindows()
