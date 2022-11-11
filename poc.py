@@ -8,9 +8,11 @@ import numpy as np
 from icecream import ic
 from timeit import default_timer as timer
 
-cap = cv.VideoCapture("http://localhost:8081/stream/video.mjpeg")
+# cap = cv.VideoCapture("http://localhost:8081/stream/video.mjpeg")
 # cap = cv.VideoCapture("2022-11-10 09-09-04.mp4")
 # cap = cv.VideoCapture("2022-11-10 09-07-51.mp4")
+# cap = cv.VideoCapture("2022-11-11 16-00-12.mp4")
+cap = cv.VideoCapture("2022-11-11 16-33-38.mp4")
 
 
 # https://github.com/kaustubh-sadekar/VirtualCam/blob/master/GUI.py
@@ -132,9 +134,9 @@ def find_nearest_bfs(s, grid):
         # ic(adj_nodes
         for item in adj_nodes:
             # ic(item)            
-            if item[1] > np.shape(grid)[0] or item[0] > np.shape(grid)[1]:
+            if item[1] >= np.shape(grid)[0] or item[0] >= np.shape(grid)[1]:
                 ic("Tried to access array out of bounds")
-                # ic(item)
+                ic(item)
                 continue
             if visited[item[1], item[0]] == 0 and item not in added: #if not visited
                 # ic(item)
@@ -244,13 +246,16 @@ for r in range(distFrames):
             cv.imshow("line", distO)
             try:
                 rotTheta[r] += (pt1[1]-pt2[1])/(pt1[0]-pt2[0])
+                # ic(theta)
             except ZeroDivisionError:
                 ic("Rotation Lock Lost")
 
         rotTheta[r] = rotTheta[r] / len(lines)
-        rotTheta[r] = math.atan(rotTheta[r])
+        # ic(math.atan(rotTheta[r]))
+        # rotTheta[r] = math.atan(rotTheta[r])
 
 rotThetaAvg = np.average(rotTheta)
+rotThetaAvg = math.atan(rotThetaAvg)
 
 rotM = cv.getRotationMatrix2D((width/2, height/2), rotThetaAvg * 180 / np.pi, 0.8)
 ic(rotM)
@@ -369,6 +374,8 @@ for m in range(mapFrames):
     pathCornerStackF = np.where(pathCornerStackS>255*12, 255, 0)
     pathCornerStackF = pathCornerStackF.astype(np.uint8)
 
+    # cv.imshow("pathCornerStackF", pathCornerStackF)
+
     #find points that are within the obstacle so we can interpolate
     tresh_OD = cv.dilate(tresh_O, None, iterations = 5)
     cntsO,_ = cv.findContours(tresh_OD.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
@@ -384,15 +391,20 @@ for m in range(mapFrames):
             d = cv.pointPolygonTest(conO, (px, py), False)
             if d == 1.0:
                 obsEndPoint.append((px, py))
-    tunnelEndXY.append(obsEndPoint)
+    # obsEndPoint = np.sort(obsEndPoint, axis = -1)
+    tunnelEndXY.append(np.array([obsEndPoint[0], obsEndPoint[-1]])) #WARN: This might break stuff
+    # tunnelEndXY = np.sort(tunnelEndXY, axis = -1) #sort to remove spurs
 
-    # cv.imshow("test2", acqFrame())
+
+ic(tunnelEndXY)
 
 #compute medians
 redXY = np.median(redXY, axis=0).astype(int)
 greenXY = np.median(greenXY, axis=0).astype(int)
 path = np.median(path, axis=0).astype(np.uint8)
 tunnelEndXY = np.median(tunnelEndXY, axis=0).astype(int)
+
+ic(tunnelEndXY)
 
 #get path mask
 pathMask = np.zeros(np.shape(path))
@@ -440,10 +452,10 @@ while True:
     
   
     # Display the resulting frame
-    cv.imshow('frame', path)
+    # cv.imshow('frame', path)
     # cv.imshow("red0", rcv[0])
-    # cv.imshow("red1", rcv[1])
-    # cv.imshow("red2", rcv[2])
+    # cv.imshow("red1", pc)
+    # cv.imshow("red2", oc)
     cv.imshow("map", map)
     # end = timer()
     # ic(end-start)
