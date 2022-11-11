@@ -106,7 +106,39 @@ def acqCorrectedFrame(distCoeff, rotM, resizeFactor, blurSize):
     return distOR
        
 def drawDiagnosticPoint(frame, point, color):
-    return cv.circle(frame, point, radius=3, color=color, thickness=-1)
+    return cv.circle(frame, point, radius=1, color=color, thickness=-1)
+
+# https://stackoverflow.com/questions/55316735/shortest-path-in-a-grid-using-bfs
+def find_nearest_bfs(s, grid):
+    visited = np.zeros(np.shape(grid))
+    # ic(np.shape(visited))
+    queue = [(s, [])]  # start point, empty path
+    added = set()
+
+    while len(queue) > 0:
+        (node, path) = queue.pop(0)
+        ic(node)
+        # ic(np.amax(grid))
+        # ic(visited[node[0], node[1]])
+        path.append(node)
+        visited[node[1], node[0]] = 1 #mark visited
+
+        if grid[node[1], node[0]] == 255:
+            return path
+            break
+
+        adj_nodes = [(node[0], node[1]-1), (node[0], node[1]+1), (node[0]+1, node[1]), (node[0]-1, node[1]), (node[0]+1, node[1]+1), (node[0]+1, node[1]-1), (node[0]-1, node[1]+1), (node[0]-1, node[1]-1)]
+        # ic(adj_nodes
+        for item in adj_nodes:
+            # ic(item)            
+            if visited[item[1], item[0]] == 0 and item not in added: #if not visited
+                ic(item)
+                queue.append((item, path[:]))
+                added.add(item)
+        # ic(queue)
+        # break
+
+    return path  # no path found
 
 #distortion correction
 
@@ -324,7 +356,7 @@ pathMask = cv.drawContours(pathMask, pathCnts,i, color=(255,255,255))
 pathMask = cv.dilate(pathMask, None, iterations=2)
 path = cv.bitwise_and(path, pathMask.astype(np.uint8)) #mask path
  
-while True:    
+while True: 
 
     map = path.copy()
     map = cv.cvtColor(map, cv.COLOR_GRAY2BGR)
@@ -333,11 +365,24 @@ while True:
     map = drawDiagnosticPoint(map, tunnelEndXY[0], (0,255,255))   
     map = drawDiagnosticPoint(map, tunnelEndXY[1], (0,255,255)) 
 
-    targetPos = (250, 325)
-    robotPos = (253, 50)     
+    #OPENCV USES Y,X!!!!!!! (in the loop)
+    targetPos = (256,320) #(x,y)
+    cv.imshow("map", map)
+    # ic(path[313,248])
+    route = find_nearest_bfs(targetPos, path.copy())
+    # ic(route)
+    for point in route:
+        map = drawDiagnosticPoint(map, point, (255,0,0)) 
+    robotPos = (240,39) 
+    route = find_nearest_bfs(robotPos, path.copy())
+    map = drawDiagnosticPoint(map, robotPos, (255,0,0)) 
+    for point in route:  
+        map = drawDiagnosticPoint(map, point, (255,255,0)) 
 
+    
+  
     # Display the resulting frame
-    cv.imshow('frame', tresh_O)
+    cv.imshow('frame', path)
     # cv.imshow("red0", rcv[0])
     # cv.imshow("red1", rcv[1])
     # cv.imshow("red2", rcv[2])
