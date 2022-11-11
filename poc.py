@@ -10,7 +10,7 @@ from timeit import default_timer as timer
 
 # cap = cv.VideoCapture("http://localhost:8081/stream/video.mjpeg")
 cap = cv.VideoCapture("2022-11-10 09-09-04.mp4")
-# cap = cv.VideoCapture("2022-11-10 09-07-51.mp4")
+cap = cv.VideoCapture("2022-11-10 09-07-51.mp4")
 
 
 # https://github.com/kaustubh-sadekar/VirtualCam/blob/master/GUI.py
@@ -81,11 +81,36 @@ cv.createTrackbar(high_S_name, window_detection_name , high_S, max_value, on_hig
 cv.createTrackbar(low_V_name, window_detection_name , low_V, max_value, on_low_V_thresh_trackbar)
 cv.createTrackbar(high_V_name, window_detection_name , high_V, max_value, on_high_V_thresh_trackbar)
 
-
+pathCornerStack = []
 
 
 width  = 1012
 height = 760
+
+def acqFrame():
+    ret, frame = cap.read()
+    frame = frame[0:height, 0:width]      
+    # if frame is read correctly ret is True
+    if not ret:
+        raise Exception("Can't receive frame (stream end?). Exiting ...")
+    return frame
+
+def acqCorrectedFrame(distCoeff, rotM, resizeFactor, blurSize):
+
+    frame = acqFrame()
+    dist = cv.undistort(frame,cam,distCoeff)
+    distOR = cv.warpAffine(src=dist, M=rotM, dsize=(width, height))
+    dim = (int(width/resizeFactor), int(height/resizeFactor))
+    distOR = cv.GaussianBlur(distOR, (blurSize, blurSize), 1)
+    distOR = cv.resize(distOR, dim, interpolation = cv.INTER_AREA)
+    return distOR
+       
+def drawDiagnosticPoint(frame, point, color):
+    return cv.circle(frame, point, radius=3, color=color, thickness=-1)
+
+#distortion correction
+
+distFrames = 20 #use 20 frames for distortion correction
 
 distCoeff = np.zeros((4,1),np.float64)
 
@@ -108,41 +133,13 @@ cam[1,2] = height/2.0 # define center y
 cam[0,0] = 6.        # define focal length x
 cam[1,1] = 6.        # define focal length y
 
-pathCornerStack = []
+rotTheta = np.zeros(distFrames)
 
-# cap = cv.undistort(cap,cam,distCoeff)
+for r in range(distFrames): 
 
-
-
-while True:
-
-    start = timer()
-    # Capture frame-by-frame
-    ret, frame = cap.read()
-    frame = frame[0:height, 0:width]
+    frame = acqFrame()
     
-    # X = -cv.getTrackbarPos("X",WINDOW_NAME) + 500
-    # Y = -cv.getTrackbarPos("Y",WINDOW_NAME) + 500
-    # Z = -cv.getTrackbarPos("Z",WINDOW_NAME)
-
-    # k1 = (cv.getTrackbarPos("K1",WINDOW_NAME)-5)/100000
-    # k2 = (cv.getTrackbarPos("K2",WINDOW_NAME)-5)/100000
-    # p1 = cv.getTrackbarPos("P1",WINDOW_NAME)/100000
-    # p2 = cv.getTrackbarPos("P2",WINDOW_NAME)/100000
-
-    distCoeff[0,0] = k1;
-    distCoeff[1,0] = k2;
-    distCoeff[2,0] = p1;
-    distCoeff[3,0] = p2;
-
-    # if frame is read correctly ret is True
-    if not ret:
-        print("Can't receive frame (stream end?). Exiting ...")
-        break
-    # Our operations on the frame come here
-    # gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
     dist = cv.undistort(frame,cam,distCoeff)
-
 
     # https://github.com/ShaheerSajid/OpenCV-Maze-Solving/blob/main/code/Source.cpp
     hsv = cv.cvtColor(dist, cv.COLOR_BGR2HSV) #src BGR to HSV	
@@ -152,13 +149,9 @@ while True:
     dilation = cv.dilate(frame_threshold, kernel, iterations=1) 
     erosion = cv.erode(dilation, kernel, iterations=1)
     erosionG = cv.Canny(erosion, 40, 200, None, 3)
-    # erosionG2 = cv.erode(erosion, np.ones((3,3), np.uint8), iterations = 1)
-    distO = np.copy(dist)
-    # distO = np.zeros((height,width,3), np.uint8)
-    
+    distO = np.copy(dist)    
 
-    rotTheta = 0
-    rotM = cv.getRotationMatrix2D((width/2, height/2), rotTheta * 180 / np.pi, 1.0)
+    rotTheta[r] = 0
 
     lines = cv.HoughLines(erosionG, 1, np.pi / 250, 175, None, 0, 0)
     if lines is not None:
@@ -173,32 +166,38 @@ while True:
             pt2 = (int(x0 - 1000*(-b)), int(y0 - 1000*(a)))
             cv.line(distO, pt1, pt2, (0,0,255), 3, cv.LINE_AA)
             try:
-                rotTheta += (pt1[1]-pt2[1])/(pt1[0]-pt2[0])
+                rotTheta[r] += (pt1[1]-pt2[1])/(pt1[0]-pt2[0])
             except ZeroDivisionError:
                 ic("Rotation Lock Lost")
 
-        rotTheta = rotTheta / len(lines)
-        rotTheta = math.atan(rotTheta)
+        rotTheta[r] = rotTheta[r] / len(lines)
+        rotTheta[r] = math.atan(rotTheta[r])
 
-        rotM = cv.getRotationMatrix2D((width/2, height/2), rotTheta * 180 / np.pi, 0.8)
+rotThetaAvg = np.average(rotTheta)
 
-    distOL = cv.warpAffine(src=distO, M=rotM, dsize=(width, height))
-    distOR = cv.warpAffine(src=dist, M=rotM, dsize=(width, height))
+rotM = cv.getRotationMatrix2D((width/2, height/2), rotThetaAvg * 180 / np.pi, 0.8)
 
-    
-    dim = (int(width/2), int(height/2))
-    distOR = cv.resize(distOR, dim, interpolation = cv.INTER_AREA)
+##cache map
+mapFrames = 20 #use 20 frames to get a map and cache it
 
+#targets
+redXY = []
+greenXY = []
+tunnelEndXY = []
+path = []
+
+for m in range(mapFrames):
+
+    distOR = acqCorrectedFrame(distCoeff, rotM, 2, 5)
 
     corrected = cv.cvtColor(distOR, cv.COLOR_BGR2HSV)
-    tresh_path = cv.inRange(corrected, (0, 0, 190), (255, 16, 255))
-    tresh_G = cv.inRange(corrected, (66, 50, 70), (85, 255, 255))
+    tresh_path = cv.inRange(corrected, (0, 0, 180), (255, 16, 255))
+    tresh_G = cv.inRange(corrected, (66, 30, 70), (85, 255, 255))
     correctedINV = cv.cvtColor(cv.bitwise_not(distOR), cv.COLOR_BGR2HSV)
     # rconv = cv.cvtColor(correctedRGB, cv.COLOR_BGR2LAB)
     # rconv = cv.cvtColor(correctedRGB, cv.COLOR_BGR2YCrCb)
     rconv = correctedINV.copy() #HSV 
     (hr,sr,vr) = cv.split(rconv)
-    # ic(rconv)
     hr = np.add(hr, 30)
     rconv = cv.merge((hr, sr, vr))
     # tresh_R = cv.inRange(rconv, (110, 108, 101), (183, 186, 139))  #use LAB
@@ -208,64 +207,73 @@ while True:
     tresh_O = cv.inRange(corrected, (27, 91, 182), (52, 255, 255))
 
     
-    tresh_R = cv.GaussianBlur(tresh_R, (5,5), 1);
+    # tresh_R = cv.GaussianBlur(tresh_R, (5,5), 1);
+    tresh_R = cv.medianBlur(tresh_R, 3)
     rkernel = np.ones((3,3), np.uint8)
-    tresh_R = cv.erode(tresh_R, None, iterations = 1)
+    tresh_R = cv.erode(tresh_R, rkernel, iterations = 1)
     tresh_R = cv.dilate(tresh_R, rkernel, iterations=1) 
     # tresh_R = cv.erode(tresh_R, rkernel, iterations=1)
 
-    tresh_path = cv.GaussianBlur(tresh_path, (15, 15), 1);
+    # tresh_path = cv.GaussianBlur(tresh_path, (15, 15), 1)
+    # tresh_path = cv.medianBlur(tresh_path, 3)
     rkernel = np.ones((3,3), np.uint8)    
-    tresh_path = cv.erode(tresh_path, rkernel, iterations=1)
     tresh_path = cv.dilate(tresh_path, rkernel, iterations=1) 
+    tresh_path = cv.erode(tresh_path, rkernel, iterations=1)
+    path.append(tresh_path)   
 
-    tresh_G = cv.GaussianBlur(tresh_G, (15,15), 1);
-    rkernel = np.ones((5,5), np.uint8)
+    tresh_G = cv.GaussianBlur(tresh_G, (15,15), 1)
+    # tresh_G = cv.medianBlur(tresh_G, 3)
+    rkernel = np.ones((3,3), np.uint8)
     tresh_G = cv.erode(tresh_G, rkernel, iterations=1)
-    tresh_G = cv.dilate(tresh_G, rkernel, iterations=1) 
-    
+    tresh_G = cv.dilate(tresh_G, rkernel, iterations=1)     
 
-    tresh_O = cv.GaussianBlur(tresh_O, (37, 37), 1);
-    rkernel = np.ones((11, 11), np.uint8)
-    tresh_O = cv.dilate(tresh_O, rkernel, iterations=1) 
-    tresh_O = cv.erode(tresh_O, rkernel, iterations=1)
-
-    #get a diagnostic image
-    map = tresh_path.copy()
-    map = cv.cvtColor(map, cv.COLOR_GRAY2BGR)
+    # tresh_O = cv.GaussianBlur(tresh_O, (37, 37), 1);
+    tresh_O = cv.medianBlur(tresh_O, 3)
+    rkernel = np.ones((15,5), np.uint8) #asymmetrical dilate to make the endpoint detection more reliable
+    # tresh_O = cv.erode(tresh_O, rkernel, iterations=1)
+    tresh_O = cv.dilate(tresh_O, rkernel, iterations=3) 
 
     # find green square
     cnts,_ = cv.findContours(tresh_G.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
     gc = cv.cvtColor(tresh_G, cv.COLOR_GRAY2BGR)
     cv.drawContours(gc, cnts, -1, (0,255,0), 2)
-    for cnt in cnts:
-        M = cv.moments(cnt)
-        cx = int(M['m10']/M['m00'])
-        cy = int(M['m01']/M['m00'])
-        cv.circle(gc, (cx,cy), radius=3, color=(0, 255, 0), thickness=-1)
-        map = cv.circle(map, (cx,cy), radius=3, color=(0, 255, 0), thickness=-1)
+    momentGMax = 0
+    idxGMax = 0;
+    for i in range(len(cnts)):
+        M = cv.moments(cnts[i])
+        if M['m00'] > momentGMax:
+            idxGMax = i
+            momentGMax = M["m00"]
+    M = cv.moments(cnts[idxGMax])
+    cx = int(M['m10']/M['m00'])
+    cy = int(M['m01']/M['m00'])
+    greenXY.append(np.array([cx, cy]))
+    
 
     #find red square
     cnts,hie = cv.findContours(tresh_R.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
     rc = cv.cvtColor(tresh_R, cv.COLOR_GRAY2BGR)
     cv.drawContours(rc, cnts, -1, (0,255,0), 2)
-    for cnt in cnts:
-        M = cv.moments(cnt)
-        cx = int(M['m10']/M['m00'])
-        cy = int(M['m01']/M['m00'])
-        cv.circle(rc, (cx,cy), radius=3, color=(0, 0, 255), thickness=-1)
-        map = cv.circle(map, (cx,cy), radius=3, color=(0, 0, 255), thickness=-1)
-
+    momentRMax = 0
+    idxRMax = 0;
+    for i in range(len(cnts)):
+        M = cv.moments(cnts[i])
+        if M['m00'] > momentRMax:
+            idxRMax = i
+            momentRMax = M["m00"]
+    M = cv.moments(cnts[idxRMax])
+    cx = int(M['m10']/M['m00'])
+    cy = int(M['m01']/M['m00'])
+    redXY.append(np.array([cx, cy]))
+    
     
     #find tunnel
     cnts,hie = cv.findContours(tresh_O.copy(), cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
     oc = cv.cvtColor(tresh_O, cv.COLOR_GRAY2BGR)
     cv.drawContours(oc, cnts, -1, (0,255,0), 2)
 
-
     #find endpoints on path
-    # po = cv.Canny(tresh_path, 100, 200, None, 3)
-    # tresh_pathB = cv.GaussianBlur(tresh_path, (3), 1)
+    
     tresh_pathF = np.float32(tresh_path)
     pathCorner = cv.cornerHarris(tresh_pathF, 5, 3, 0.04)
     pathCorner = cv.erode(pathCorner, None, iterations = 2)
@@ -274,13 +282,11 @@ while True:
     #do temporal filtering
     ntmax = 15    
     if(len(pathCornerStack)) == ntmax:
-        pathCornerStack.pop(-1) #circular buffer
+        pathCornerStack.pop(0) #circular buffer
     pathCornerStack.append(pathCorner)
     pathCornerStackS = np.sum(pathCornerStack, axis = 0)
     pathCornerStackF = np.where(pathCornerStackS>255*12, 255, 0)
-    # ic(pathCornerStackF)
     pathCornerStackF = pathCornerStackF.astype(np.uint8)
-
 
     #find points that are within the obstacle so we can interpolate
     tresh_OD = cv.dilate(tresh_O, None, iterations = 5)
@@ -295,25 +301,35 @@ while True:
             mu = cv.moments(conP)
             (px, py) = (int(mu['m10'] / (mu['m00'] + 1e-5)), int(mu['m01'] / (mu['m00'] + 1e-5)))
             d = cv.pointPolygonTest(conO, (px, py), False)
-            # ic(dist)
             if d == 1.0:
                 obsEndPoint.append((px, py))
-    # ic(obsEndPoint)
-    for EP in obsEndPoint:
-        # ic(EP)
-        oc = cv.circle(oc, EP, radius=1, color=(0, 0, 255), thickness=-1)
-        map = cv.circle(map, EP, radius=3, color=(0, 255, 255), thickness=-1)
+    tunnelEndXY.append(obsEndPoint)
+    
+    
+#compute medians
+redXY = np.median(redXY, axis=0).astype(int)
+greenXY = np.median(greenXY, axis=0).astype(int)
+path = np.median(path, axis=0).astype(np.uint8)
+tunnelEndXY = np.median(tunnelEndXY, axis=0).astype(int)
+
+ 
+while True:
     
 
-    rcv = cv.split(rconv)    
+    map = path.copy()
+    map = cv.cvtColor(map, cv.COLOR_GRAY2BGR)
+    map = drawDiagnosticPoint(map, redXY, (0,0,255))
+    map = drawDiagnosticPoint(map, greenXY, (0,255,0))
+    map = drawDiagnosticPoint(map, tunnelEndXY[0], (0,255,255))   
+    map = drawDiagnosticPoint(map, tunnelEndXY[1], (0,255,255))      
 
     # Display the resulting frame
-    cv.imshow('frame', tresh_R)
+    cv.imshow('frame', tresh_O)
     # cv.imshow("red0", rcv[0])
     # cv.imshow("red1", rcv[1])
     # cv.imshow("red2", rcv[2])
     cv.imshow("map", map)
-    end = timer()
+    # end = timer()
     # ic(end-start)
     if cv.waitKey(1) == ord('q'):
         break
