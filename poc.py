@@ -4,6 +4,7 @@
 
 import math
 import numba
+from numba.typed import List
 import cv2 as cv
 import numpy as np
 from icecream import ic
@@ -111,30 +112,55 @@ def acqCorrectedFrame(distCoeff, rotM, resizeFactor, blurSize):
        
 def drawDiagnosticPoint(frame, point, color):
     return cv.circle(frame, point, radius=1, color=color, thickness=-1)
-
+    
+dt = np.dtype([('f0', '<i8'), ('f1', '<i8')])
 # https://stackoverflow.com/questions/55316735/shortest-path-in-a-grid-using-bfs
-# @numba.jit
-def find_nearest_bfs(s: tuple, grid):
+@numba.njit
+def find_nearest_bfs(s, grid):
     # start = time()
     visited = np.zeros(np.shape(grid))
-    added = np.zeros(np.shape(grid))
+    parents = np.zeros(np.shape(grid), dtype = dt)
+    # print
+    # print(parents.dtype)
+    # ic(parents)
+    parents[s[1], s[0]][0] = s[1]
+    parents[s[1], s[0]][1] = s[0]
+    visited[s[1], s[0]] = 1
+    route = []
     # ic(np.shape(visited))
-    queue = [(s, [])]  # start point, empty path
+    # queue = numba.int64[]
+    queue = [s]  # start point, empty path
+    
     # queue = [((int(i), int(i)),[(int(i), int(i)) for i in range(0)]) for i in range(0)]
     # added = set()
 
     while len(queue) > 0:
-        (node, path) = queue.pop(0)
+        node = queue.pop(0)
         #ic(node)
         # ic(np.amax(grid))
         # ic(visited[node[0], node[1]])
-        path.append(node)
+        # path.append(node)
         visited[node[1], node[0]] = 1 #mark visited
 
         if grid[node[1], node[0]] == 255:
             # end = time()
             # ic("Nearest Entry BFS takes " + str(end-start))
-            return path
+            # ic(parents[node[1], node[0]])
+            route.append(node)
+            current_node = node[:]
+            # ic(current_node)
+            # ic(parents[current_node[1], current_node[0]])
+
+            # while np.array_equal(parents[current_node[1], current_node[0]], current_node) == False:
+            while (parents[current_node[1], current_node[0]][0]==current_node[1] and parents[current_node[1], current_node[0]][1]==current_node[0]) == False:
+                # current_node = parents[current_node[1], current_node[0]]
+                current_node = (parents[current_node[1], current_node[0]][1], parents[current_node[1], current_node[0]][0])
+
+                # ic(current_node)
+                route.append(current_node)
+            # route.append(s)
+            # ic(route)
+            return route
             break
 
         adj_nodes = [(node[0], node[1]-1), (node[0], node[1]+1), (node[0]+1, node[1]), (node[0]-1, node[1]), (node[0]+1, node[1]+1), (node[0]+1, node[1]-1), (node[0]-1, node[1]+1), (node[0]-1, node[1]-1)]
@@ -145,16 +171,95 @@ def find_nearest_bfs(s: tuple, grid):
                 # print("Tried to access array out of bounds")
                 # ic(item)
                 continue
-            if visited[item[1], item[0]] == 0 and added[item[1], item[0]] == 0: #if not visited
+            if visited[item[1], item[0]] == 0: #if not visited
                 # ic(item)
-                queue.append((item, path[:]))
-                # added.add(item)
-                added[item[1], item[0]] = 1
+                queue.append(item)
+                visited[item[1], item[0]] = 1
+                parents[item[1], item[0]][0] = node[1]
+                parents[item[1], item[0]][1] = node[0]
             
         # ic(queue)
         # break
 
-    return path  # no path found
+    return None  # no path found
+@numba.njit
+def pathFind_BFS(s, e, grid):
+    # start = time()
+    # ic(s)
+    # ic(e)
+    visited = np.zeros(np.shape(grid))
+    parents = np.zeros(np.shape(grid), dtype = dt)
+    # print
+    # print(parents.dtype)
+    # ic(parents)
+    parents[s[1], s[0]][0] = s[1]
+    parents[s[1], s[0]][1] = s[0]
+    visited[s[1], s[0]] = 1
+    route = []
+    # ic(np.shape(visited))
+    # queue = numba.int64[]
+    queue = [s]  # start point, empty path
+    
+    # queue = [((int(i), int(i)),[(int(i), int(i)) for i in range(0)]) for i in range(0)]
+    # added = set()
+
+    while len(queue) > 0:
+        node = queue.pop(0)
+        #ic(node)
+        # ic(np.amax(grid))
+        # ic(visited[node[0], node[1]])
+        # path.append(node)
+        visited[node[1], node[0]] = 1 #mark visited
+        # ic(node)
+        # ic(e)
+        if node[1] == e[1] and node[0] == e[0]:
+            # ic(node)
+            # end = time()
+            # ic("Nearest Entry BFS takes " + str(end-start))
+            # ic(parents[node[1], node[0]])
+            route.append(node)
+            current_node = node[:]
+            # ic(current_node)
+            # ic(parents[current_node[1], current_node[0]])
+
+            # while np.array_equal(parents[current_node[1], current_node[0]], current_node) == False:
+            while (parents[current_node[1], current_node[0]][0]==current_node[1] and parents[current_node[1], current_node[0]][1]==current_node[0]) == False:
+                # current_node = parents[current_node[1], current_node[0]]
+                current_node = (parents[current_node[1], current_node[0]][1], parents[current_node[1], current_node[0]][0])
+
+                # ic(current_node)
+                route.append(current_node)
+                # ic(route)
+            # route.append(s)
+            # ic(route)
+            return route
+            break
+
+        possible_adj_nodes = [(node[0], node[1]-1), (node[0], node[1]+1), (node[0]+1, node[1]), (node[0]-1, node[1]), (node[0]+1, node[1]+1), (node[0]+1, node[1]-1), (node[0]-1, node[1]+1), (node[0]-1, node[1]-1)]
+        adj_nodes = []
+
+        for n in possible_adj_nodes: #only append if we can go there
+            if(grid[n[1], n[0]]) == 255:
+                adj_nodes.append(n)
+
+        for item in adj_nodes:
+            # ic(item)            
+            if item[1] >= np.shape(grid)[0] or item[0] >= np.shape(grid)[1]:
+                # print("Tried to access array out of bounds")
+                # ic(item)
+                continue
+            if visited[item[1], item[0]] == 0: #if not visited
+                # ic(item)
+                queue.append(item)
+                visited[item[1], item[0]] = 1
+                # parents[item[1], item[0]] = node
+                parents[item[1], item[0]][0] = node[1]
+                parents[item[1], item[0]][1] = node[0]
+            
+        # ic(queue)
+        # break
+
+    return None  # no path found
 
 # @numba.njit
 def pathfindBFS(s, e, grid):
@@ -162,7 +267,7 @@ def pathfindBFS(s, e, grid):
     visited = np.zeros(np.shape(grid))
     # ic(np.shape(visited))
     queue = [(s, [])]  # start point, empty path
-    added = np.zeros(np.shape(grid))
+
 
     while len(queue) > 0:
         (node, path) = queue.pop(0)
@@ -175,7 +280,7 @@ def pathfindBFS(s, e, grid):
         if node == e:
             # end = time()
             # ic("Pathfind BFS takes " + str(end-start))
-            return path
+            return path            
             break
 
         possible_adj_nodes = [(node[0], node[1]-1), (node[0], node[1]+1), (node[0]+1, node[1]), (node[0]-1, node[1]), (node[0]+1, node[1]+1), (node[0]+1, node[1]-1), (node[0]-1, node[1]+1), (node[0]-1, node[1]-1)]
@@ -186,10 +291,10 @@ def pathfindBFS(s, e, grid):
         # ic(adj_nodes)
         for item in adj_nodes:
             # ic(item)            
-            if visited[item[1], item[0]] == 0 and added[item[1], item[0]] == 0: #if not visited
+            if visited[item[1], item[0]] == 0: #if not visited
                 #ic(item)
                 queue.append((item, path[:]))
-                added[item[1], item[0]] = 1
+                visited[item[1], item[0]] = 1
         # ic(queue)
         # break
     
@@ -463,6 +568,14 @@ while True:
         drawDiagnosticPoint(map, target, (255, 125, 0))
 
     #OPENCV USES Y,X!!!!!!! (in the loop)
+    
+    robotPos = (240,50) 
+    route = find_nearest_bfs(robotPos, path.copy())
+    map = drawDiagnosticPoint(map, robotPos, (255,0,0)) 
+    for point in route:  
+        map = drawDiagnosticPoint(map, point, (255,255,0)) 
+    robotEntry = route[0]
+    # ic(route)
     targetPos = targets[0] #(x,y)
     # cv.imshow("map", map)
     # ic(path[313,248])
@@ -470,15 +583,11 @@ while True:
     # ic(route)
     for point in route:
         map = drawDiagnosticPoint(map, point, (255,0,0)) 
-    targetEntry = route[-1]
-    robotPos = (240,50) 
-    route = find_nearest_bfs(robotPos, path.copy())
-    map = drawDiagnosticPoint(map, robotPos, (255,0,0)) 
-    for point in route:  
-        map = drawDiagnosticPoint(map, point, (255,255,0)) 
-    robotEntry = route[-1]
+    targetEntry = route[0]
+    # ic(targetEntry)
+    # ic(robotEntry)
 
-    route = pathfindBFS(robotEntry, targetEntry, path.copy())
+    route = pathFind_BFS(robotEntry, targetEntry, path.copy())
     for point in route:  
         map = drawDiagnosticPoint(map, point, (3, 20, 220)) 
     # ic(len(route))
