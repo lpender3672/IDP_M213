@@ -118,8 +118,8 @@ cutoff = (np.divide(masked.shape, 5).astype('int'))#discard lower freqs
 ic(cutoff)
 ic(masked.shape)
 fmask = np.zeros(f.shape)
-for y in range(cutoff[0], fmask.shape[0]- cutoff[0]):
-    for x in range(cutoff[1], fmask.shape[1] - cutoff[1]):
+for y in range(cutoff[0], fmask.shape[0]- cutoff[0]+1):
+    for x in range(cutoff[1], fmask.shape[1] - cutoff[1]+1):
         fmask[y, x] = 1
 
 ff = np.multiply(f, fmask)
