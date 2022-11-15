@@ -85,6 +85,7 @@ cv.createTrackbar(high_S_name, window_detection_name , high_S, max_value, on_hig
 cv.createTrackbar(low_V_name, window_detection_name , low_V, max_value, on_low_V_thresh_trackbar)
 cv.createTrackbar(high_V_name, window_detection_name , high_V, max_value, on_high_V_thresh_trackbar)
 
+
 pathCornerStack = []
 
 
@@ -599,6 +600,7 @@ while True:
     # cv.imshow("red1", pc)
     # cv.imshow("red2", oc)
     cv.imshow("map", map)
+
     # end = timer()
     # ic(end-start)
     if cv.waitKey(1) == ord('q'):
