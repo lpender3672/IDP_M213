@@ -76,7 +76,7 @@ rl = cv.imread("rough light.png")
 sl = cv.imread("smooth light.png")
 
 # thres = cv.inRange(r, (low_H, low_S, low_V), (high_H, high_S, high_V))
-orig = s
+orig = r
 luv = cv.cvtColor(orig, cv.COLOR_BGR2LUV)
 l,u,v = cv.split(luv)
 r,g,b = cv.split(orig)
