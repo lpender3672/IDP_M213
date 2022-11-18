@@ -10,10 +10,14 @@ import numpy as np
 from icecream import ic
 from time import time
 
-# cap = cv.VideoCapture("http://localhost:8081/stream/video.mjpeg")
+cap = cv.VideoCapture("http://localhost:8081/stream/video.mjpeg")
+cap.set(cv.CAP_PROP_BUFFERSIZE, 0)
+cap.set(cv.CAP_PROP_FRAME_HEIGHT, 760)
+cap.set(cv.CAP_PROP_FRAME_WIDTH, 1012)
+# cap.set(cv.CAP_PROP_BUFFERSIZE, 0)
 # cap = cv.VideoCapture("2022-11-10 09-09-04.mp4")
 # cap = cv.VideoCapture("2022-11-10 09-07-51.mp4")
-cap = cv.VideoCapture("2022-11-11 16-00-12.mp4")
+# cap = cv.VideoCapture("2022-11-11 16-00-12.mp4")
 # cap = cv.VideoCapture("2022-11-11 16-33-38.mp4")
 
 
@@ -555,7 +559,7 @@ while True:
     for cnt in cnts:
         # ic(cv.moments(cnt)['m00'])
         M = cv.moments(cnt)
-        if M["m00"] < 90 and M["m00"] > 30: #TODO: replace with better filtering
+        if M["m00"] < 150 and M["m00"] > 30: #TODO: replace with better filtering
             targets.append((int(M['m10'] / (M['m00'] + 1e-5)), int(M['m01'] / (M['m00'] + 1e-5))))
 
 
@@ -570,27 +574,27 @@ while True:
 
     #OPENCV USES Y,X!!!!!!! (in the loop)
     
-    robotPos = (240,50) 
-    route = find_nearest_bfs(robotPos, path.copy())
-    map = drawDiagnosticPoint(map, robotPos, (255,0,0)) 
-    for point in route:  
-        map = drawDiagnosticPoint(map, point, (255,255,0)) 
-    robotEntry = route[0]
+    # robotPos = (240,50) 
+    # route = find_nearest_bfs(robotPos, path.copy())
+    # map = drawDiagnosticPoint(map, robotPos, (255,0,0)) 
+    # for point in route:  
+    #     map = drawDiagnosticPoint(map, point, (255,255,0)) 
+    # robotEntry = route[0]
     # ic(route)
-    targetPos = targets[0] #(x,y)
-    # cv.imshow("map", map)
-    # ic(path[313,248])
-    route = find_nearest_bfs(targetPos, path.copy())
-    # ic(route)
-    for point in route:
-        map = drawDiagnosticPoint(map, point, (255,0,0)) 
-    targetEntry = route[0]
-    # ic(targetEntry)
-    # ic(robotEntry)
+    # targetPos = targets[0] #(x,y)
+    # # cv.imshow("map", map)
+    # # ic(path[313,248])
+    # route = find_nearest_bfs(targetPos, path.copy())
+    # # ic(route)
+    # for point in route:
+    #     map = drawDiagnosticPoint(map, point, (255,0,0)) 
+    # targetEntry = route[0]
+    # # ic(targetEntry)
+    # # ic(robotEntry)
 
-    route = pathFind_BFS(robotEntry, targetEntry, path.copy())
-    for point in route:  
-        map = drawDiagnosticPoint(map, point, (3, 20, 220)) 
+    # route = pathFind_BFS(robotEntry, targetEntry, path.copy())
+    # for point in route:  
+    #     map = drawDiagnosticPoint(map, point, (3, 20, 220)) 
     # ic(len(route))
     
   
