@@ -26,20 +26,13 @@ class arena:
     oHi = (52, 255, 255)
     oKernel = (15,5)
 
-    ntmax = 15 
-
-    
-    
+    ntmax = 15    
 
 
     def __init__(self, name):
         self.cap = vid(name)
         ic(self.cap.getRotM()) #initialise rotation too
-        self.redXY = []
-        self.greenXY = []
-        self.tunnelEndXY = []
-        self.path = []
-        self.pathCornerStack = []
+        
 
     def drawDiagnosticPoint(self, frame, point, color):
         return cv.circle(frame, point, radius=1, color=color, thickness=-1)
@@ -48,11 +41,11 @@ class arena:
 
         img = self.cap.getCorrectedFrame(self.downscale)
         shape = np.shape(cv.cvtColor(img, cv.COLOR_BGR2GRAY))
-        # self.redXY = np.empty(shape)
-        # self.greenXY = np.empty(shape)
-        # self.tunnelEndXY = np.empty(shape)
+
         self.path = np.empty(shape)
-        self.pathCornerStack = np.empty(shape)
+        self.gbox = np.empty(shape)
+        self.rbox = np.empty(shape)
+        self.obox = np.empty(shape)
 
         for i in range(nframes):
             img = self.cap.getCorrectedFrame(self.downscale)
@@ -67,15 +60,17 @@ class arena:
             # tresh_path = cv.GaussianBlur(tresh_path, (5,5), 1)
             # self.path.append(tresh_path) 
             # self.path = np.append(self.path, tresh_path, axis=0) 
+            self.path = np.dstack((self.path, tresh_path))
             
 
             #extract green
             tresh_G = cv.inRange(hsv, self.gLo, self.gHi)
             tresh_G = cv.GaussianBlur(tresh_G, (15,15), 1)
-            # tresh_G = cv.medianBlur(tresh_G, 3)
             rkernel = np.ones(self.gKernel, np.uint8)
             tresh_G = cv.erode(tresh_G, rkernel, iterations=1)
             tresh_G = cv.dilate(tresh_G, rkernel, iterations=1)
+            self.gbox = np.dstack((self.gbox, tresh_G))
+            # ic(self.gbox)
 
             #extract red
             (hr,sr,vr) = cv.split(hsvI)
@@ -85,95 +80,22 @@ class arena:
             tresh_R = cv.medianBlur(tresh_R, 3)
             rkernel = np.ones(self.rKernel, np.uint8)
             tresh_R = cv.erode(tresh_R, rkernel, iterations = 1)
-            tresh_R = cv.dilate(tresh_R, rkernel, iterations=1) 
+            tresh_R = cv.dilate(tresh_R, rkernel, iterations=1)
+            self.rbox = np.dstack((self.rbox, tresh_R))
 
             #extract lime
             tresh_O = cv.inRange(hsv, self.oLo, self.oHi)
             tresh_O = cv.medianBlur(tresh_O, 3)
             rkernel = np.ones(self.oKernel, np.uint8) #asymmetrical dilate to make the endpoint detection more reliable
             tresh_O = cv.dilate(tresh_O, rkernel, iterations=3) 
+            self.obox = np.dstack((self.obox, tresh_O))         
 
-            # find green square
-            cnts,_ = cv.findContours(tresh_G.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-            # gc = cv.cvtColor(tresh_G, cv.COLOR_GRAY2BGR)
-            # cv.drawContours(gc, cnts, -1, (0,255,0), 2)
-            momentGMax = 0
-            idxGMax = 0;
-            for i in range(len(cnts)):
-                M = cv.moments(cnts[i])
-                if M['m00'] > momentGMax:
-                    idxGMax = i
-                    momentGMax = M["m00"]
-            M = cv.moments(cnts[idxGMax])
-            cx = int(M['m10']/M['m00'])
-            cy = int(M['m01']/M['m00'])
-            self.greenXY.append(np.array([cx, cy]))
 
-            
-            #find red square
-            cnts,hie = cv.findContours(tresh_R.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-            # rc = cv.cvtColor(tresh_R, cv.COLOR_GRAY2BGR)
-            # cv.drawContours(rc, cnts, -1, (0,255,0), 2)
-            momentRMax = 0
-            idxRMax = 0;
-            for i in range(len(cnts)):
-                M = cv.moments(cnts[i])
-                if M['m00'] > momentRMax:
-                    idxRMax = i
-                    momentRMax = M["m00"]
-            M = cv.moments(cnts[idxRMax])
-            cx = int(M['m10']/M['m00'])
-            cy = int(M['m01']/M['m00'])
-            self.redXY.append(np.array([cx, cy]))
-            
-            
-            #find tunnel
-            cnts,_ = cv.findContours(tresh_O.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-            # oc = cv.cvtColor(tresh_O, cv.COLOR_GRAY2BGR)
-            # cv.drawContours(oc, cnts, -1, (0,255,0), 2)
-
-            #find endpoints on path            
-            tresh_pathF = np.float3q2(tresh_path)
-            pathCorner = cv.cornerHarris(tresh_pathF, 1, 9, 0.01)
-            # pathCorner = cv.erode(pathCorner, None, iterations = 3)
-            # pathCorner = cv.dilate(pathCorner,None, iterations=5)
-            pathCorner = pathCorner.astype(np.uint8)
-            cv.imshow("treshpath", tresh_pathF)
-            # ic(pathCorner.shape)
-            
-
-            # if(len(self.pathCornerStack)) == self.ntmax:
-            #     self.pathCornerStack.pop(0) #circular buffer
-            # self.pathCornerStack = np.append(self.pathCornerStack, pathCorner, axis = 0)
-            # self.pathCornerStackS = np.sum(self.pathCornerStack, axis = 0)
-            # self.pathCornerStackF = np.where(self.pathCornerStackS>255*12, 255, 0)
-            # self.pathCornerStackF = self.pathCornerStackF.astype(np.uint8)
-
-            #test which are in contour
-            tresh_OD = cv.dilate(tresh_O, None, iterations = 5)
-            cntsO,_ = cv.findContours(tresh_OD.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-            cntsP,_ = cv.findContours(pathCorner.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-            # pc = cv.cvtColor(pathCorner, cv.COLOR_GRAY2BGR)
-            # oc = cv.cvtColor(tresh_OD, cv.COLOR_GRAY2BGR)
-            # cv.drawContours(pc, cntsP, -1, (0,255,0), 1)
-            cv.imshow("test", pathCorner)
-            cv.waitKey(10000)
-            obsEndPoint = []
-            for conO in cntsO:
-                for conP in cntsP:
-                    mu = cv.moments(conP)
-                    (px, py) = (int(mu['m10'] / (mu['m00'] + 1e-5)), int(mu['m01'] / (mu['m00'] + 1e-5)))
-                    d = cv.pointPolygonTest(conO, (px, py), False)
-                    if d == 1.0:
-                        obsEndPoint.append((px, py))
-            # obsEndPoint = np.sort(obsEndPoint, axis = -1)
-            # ic(obsEndPoint)
-            self.tunnelEndXY.append(np.array([obsEndPoint[0], obsEndPoint[-1]])) #WARN: This might break stuff
-
-        self.redXY = np.median(self.redXY, axis=0).astype(int)
-        self.greenXY = np.median(self.greenXY, axis=0).astype(int)
-        self.path = np.median(self.path, axis=0).astype(np.uint8)
-        self.tunnelEndXY = np.median(self.tunnelEndXY, axis=0).astype(int)
+        #compute medians
+        self.rbox = np.median(self.rbox, axis=-1).astype(np.uint8)
+        self.gbox = np.median(self.gbox, axis=-1).astype(np.uint8)
+        self.path = np.median(self.path, axis=-1).astype(np.uint8)
+        self.obox = np.median(self.obox, axis=-1).astype(np.uint8)
 
         #get path mask
         self.pathMask = np.zeros(np.shape(self.path))
@@ -189,21 +111,66 @@ class arena:
         self.pathMask = cv.dilate(self.pathMask, None, iterations=2)
         self.path = cv.bitwise_and(self.path, self.pathMask.astype(np.uint8)) #mask path
 
+        # find green square
+        cnts,_ = cv.findContours(self.gbox, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+        # gc = cv.cvtColor(tresh_G, cv.COLOR_GRAY2BGR)
+        # cv.drawContours(gc, cnts, -1, (0,255,0), 2)
+        momentGMax = 0
+        idxGMax = 0;
+        for i in range(len(cnts)):
+            M = cv.moments(cnts[i])
+            if M['m00'] > momentGMax:
+                idxGMax = i
+                momentGMax = M["m00"]
+        M = cv.moments(cnts[idxGMax])
+        cx = int(M['m10']/M['m00'])
+        cy = int(M['m01']/M['m00'])
+        self.gXY=(np.array([cx, cy]))
+
+        #find red square
+        cnts,hie = cv.findContours(tresh_R.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+        # rc = cv.cvtColor(tresh_R, cv.COLOR_GRAY2BGR)
+        # cv.drawContours(rc, cnts, -1, (0,255,0), 2)
+        momentRMax = 0
+        idxRMax = 0;
+        for i in range(len(cnts)):
+            M = cv.moments(cnts[i])
+            if M['m00'] > momentRMax:
+                idxRMax = i
+                momentRMax = M["m00"]
+        M = cv.moments(cnts[idxRMax])
+        cx = int(M['m10']/M['m00'])
+        cy = int(M['m01']/M['m00'])
+        self.rXY=(np.array([cx, cy]))
+        
+        #test which are in contour        
+        overlap = cv.bitwise_and(self.obox, self.path)
+        overlapRows = np.amax(overlap, axis=1)
+        whiteRows = np.where(overlapRows == 255)
+        overlapCols = np.amax(overlap, axis = 0)
+        whiteCols = np.where(overlapCols == 255)        
+
+        self.t0XY = (whiteCols[0][0], whiteRows[0][0])
+        self.t1XY = (whiteCols[0][0], whiteRows[0][-1])
+        
+        ic(self.t0XY)
+        ic(self.t1XY)       
+
     def getDiagnosticMap(self):
         self.grabAll()
-        self.map = self.path.copy()
-        # self.map = cv.cvtColor(map, cv.COLOR_GRAY2BGR)
-        self.map = self.drawDiagnosticPoint(self.map, self.redXY, (0,0,255))
-        self.map = self.drawDiagnosticPoint(self.map, self.greenXY, (0,255,0))
-        self.map = self.drawDiagnosticPoint(self.map, self.tunnelEndXY[0], (0,255,255))   
-        self.map = self.drawDiagnosticPoint(self.map, self.tunnelEndXY[1], (0,255,255))
+        self.map = cv.cvtColor(self.path, cv.COLOR_GRAY2BGR)
+        self.map = self.drawDiagnosticPoint(self.map, self.rXY, (0,0,255))
+        self.map = self.drawDiagnosticPoint(self.map, self.gXY, (0,255,0))
+        self.map = self.drawDiagnosticPoint(self.map, self.t0XY, (0,255,255))   
+        self.map = self.drawDiagnosticPoint(self.map, self.t1XY, (0,255,255))
         return self.map
 
         
 
 
 if __name__ == "__main__":
-    map = arena("http://localhost:8081/stream/video.mjpeg")
+    # map = arena("http://localhost:8081/stream/video.mjpeg")
+    map = arena("C:\\Users\\yehen\\Videos\\2022-11-10 09-09-04.m4v")
     while True:
         img = map.getDiagnosticMap()
 

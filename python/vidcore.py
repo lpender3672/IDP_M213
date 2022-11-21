@@ -92,11 +92,12 @@ class vid:
     D = np.array([[-0.05470334257497442], [-0.09142371384400942], [0.17966906821072895], [-0.08708720575337928]])
     
     def __init__(self, name) -> None:
-        self.cap = VideoCapture(name)
+        # self.cap = VideoCapture(name)
+        self.cap = cv.VideoCapture(name)
         pass
 
     def getUndistort(self, balance=0.0, dim2=None, dim3=None):
-        img = self.cap.read()
+        ret, img = self.cap.read()
         dim1 = img.shape[:2][::-1]  #dim1 is the dimension of input image to un-distort    
         if not dim2:
             dim2 = dim1    
@@ -177,9 +178,10 @@ class vid:
 
 if __name__ == "__main__":
 
-    cap = vid("http://localhost:8081/stream/video.mjpeg")
+    # cap = vid("http://localhost:8081/stream/video.mjpeg")
+    
+    cap = vid("C:\\Users\\yehen\\Videos\\2022-11-10 09-09-04.m4v")
     cap.getRotM() #enable rotation
-    # cap = cv.VideoCapture("C:\\Users\\yehen\\Videos\\2022-11-10 09-09-04.m4v")
 
     while True:
         img = cap.getCorrectedFrame(2)
