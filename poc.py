@@ -10,13 +10,13 @@ import numpy as np
 from icecream import ic
 from time import time
 
-cap = cv.VideoCapture("http://localhost:8081/stream/video.mjpeg")
-cap.set(cv.CAP_PROP_BUFFERSIZE, 0)
-cap.set(cv.CAP_PROP_FRAME_HEIGHT, 760)
-cap.set(cv.CAP_PROP_FRAME_WIDTH, 1012)
+# cap = cv.VideoCapture("http://localhost:8081/stream/video.mjpeg")
+# cap.set(cv.CAP_PROP_BUFFERSIZE, 0)
+# cap.set(cv.CAP_PROP_FRAME_HEIGHT, 760)
+# cap.set(cv.CAP_PROP_FRAME_WIDTH, 1012)
 # cap.set(cv.CAP_PROP_BUFFERSIZE, 0)
 # cap = cv.VideoCapture("2022-11-10 09-09-04.mp4")
-# cap = cv.VideoCapture("2022-11-10 09-07-51.mp4")
+cap = cv.VideoCapture("2022-11-10 09-07-51.mp4")
 # cap = cv.VideoCapture("2022-11-11 16-00-12.mp4")
 # cap = cv.VideoCapture("2022-11-11 16-33-38.mp4")
 
@@ -109,10 +109,12 @@ def acqCorrectedFrame(distCoeff, rotM, resizeFactor, blurSize):
 
     frame = acqFrame()
     dist = cv.undistort(frame,cam,distCoeff)
+    
     distOR = cv.warpAffine(src=dist, M=rotM, dsize=(width, height))
     dim = (int(width/resizeFactor), int(height/resizeFactor))
     distOR = cv.GaussianBlur(distOR, (blurSize, blurSize), 1)
     distOR = cv.resize(distOR, dim, interpolation = cv.INTER_AREA)
+    cv.imshow("test", dist)
     return distOR
        
 def drawDiagnosticPoint(frame, point, color):
@@ -326,6 +328,8 @@ distCoeff[1,0] = k2;
 distCoeff[2,0] = p1;
 distCoeff[3,0] = p2;
 
+
+
 # assume unit matrix for camera
 cam = np.eye(3,dtype=np.float32)
 
@@ -333,6 +337,7 @@ cam[0,2] = width/2.0  # define center x
 cam[1,2] = height/2.0 # define center y
 cam[0,0] = 6.        # define focal length x
 cam[1,1] = 6.        # define focal length y
+# newcameramtx, roi = cv.getOptimalNewCameraMatrix(cam, distCoeff, (width, height), 1, ())
 
 rotTheta = np.zeros(distFrames)
 
@@ -380,7 +385,7 @@ for r in range(distFrames):
 rotThetaAvg = np.average(rotTheta)
 rotThetaAvg = math.atan(rotThetaAvg)
 
-rotM = cv.getRotationMatrix2D((width/2, height/2), rotThetaAvg * 180 / np.pi, 0.8)
+rotM = cv.getRotationMatrix2D((width/2, height/2), rotThetaAvg * 180 / np.pi, 1)
 ic(rotM)
 # cv.imshow("test",acqCorrectedFrame(distCoeff, rotM, 2, 5))
 
@@ -485,6 +490,7 @@ for m in range(mapFrames):
     
     tresh_pathF = np.float32(tresh_path)
     pathCorner = cv.cornerHarris(tresh_pathF, 5, 3, 0.04)
+    cv.imshow("pathC", pathCorner)
     pathCorner = cv.erode(pathCorner, None, iterations = 2)
     pathCorner = cv.dilate(pathCorner,None)
 
@@ -544,6 +550,9 @@ pathMask = cv.dilate(pathMask, None, iterations=2)
 path = cv.bitwise_and(path, pathMask.astype(np.uint8)) #mask path
 
 
+for i in range(50):
+    acqFrame()
+
 
 while True: 
     start = time()
@@ -599,7 +608,7 @@ while True:
     
   
     # Display the resulting frame
-    cv.imshow('frame', tresh_block)
+    # cv.imshow('frame', tresh_block)
     cv.imshow("red0", distOR)
     # cv.imshow("red1", pc)
     # cv.imshow("red2", oc)
