@@ -2,16 +2,31 @@ from vidcore import vid
 import cv2 as cv
 import numpy as np
 from icecream import ic
+import math
 
 
 
 class arena:
 
+    #waypoints
+    start = (501, 74)
+    redBox = (266, 124)
+    greenBox = (741, 130)
+    rampStart = (175, 225)
+    rampEnd = (215, 601)
+    tunnelStart = (841, 242)
+    tunnelEnd = (853, 603)
+    b1 = (651, 585)
+    b2 = (521, 585)
+    b3 = (393, 585)
+    headingOffset = 180
+    locretries = 10
+
     #config vars
-    downscale = 2
+    downscale = 1
     bakRotThetaAvg = 1.5707963267948966
 
-    pathLo = (0, 0, 180)
+    pathLo = (0, 0, 185)
     pathHi = (255, 30, 255)
     pathKernel = (3,3)
 
@@ -36,12 +51,14 @@ class arena:
     blockSmall = 70 #blockSizes
     blockLarge = 120
 
-    ntmax = 15    
+    ntmax = 15  
+
+    aruco = 119  
 
 
     def __init__(self, name):
         self.cap = vid(name)
-        ic(self.cap.getRotMHL()) #initialise rotation too
+        ic(self.cap.getRotMAR()) #initialise rotation too
         
 
     def drawDiagnosticPoint(self, frame, point, color):
@@ -107,7 +124,7 @@ class arena:
         self.path = np.median(self.path, axis=-1).astype(np.uint8)
         self.obox = np.median(self.obox, axis=-1).astype(np.uint8)
 
-        cv.imshow("obox", self.rbox)
+        # cv.imshow("obox", self.obox)
         # cv.waitKey(500)
 
         #get path mask
@@ -156,7 +173,8 @@ class arena:
         cy = int(M['m01']/M['m00'])
         self.rXY=(np.array([cx, cy]))
         
-        #test which are in contour        
+        #test which are in contour      
+        # cv.imshow("obox", self.obox)  
         overlap = cv.bitwise_and(self.obox, self.path)
         overlapRows = np.amax(overlap, axis=1)
         whiteRows = np.where(overlapRows == 255)
@@ -181,24 +199,99 @@ class arena:
         mb = cv.medianBlur(img, self.robotMedianBlur)
         mb = cv.cvtColor(mb, cv.COLOR_BGR2HSV)
         robot_tresh = cv.inRange(mb, self.robotLo, self.robotHi)
-        # robot_tresh = cv.GaussianBlur(robot_tresh, (self.robotMedianBlur, self.robotMedianBlur), 1)
+        robot_tresh = cv.GaussianBlur(robot_tresh, (self.robotMedianBlur, self.robotMedianBlur), 1)
         # cv.imshow("rt", robot_tresh)
         rows = robot_tresh.shape[0]
 
         circles = cv.HoughCircles(robot_tresh, cv.HOUGH_GRADIENT, 1, rows / 8, param1=10, param2=12, minRadius=5, maxRadius=10)
-        # ic(circles)
-        # if circles is not None:
-        #     circles = np.uint16(np.around(circles))
-        #     for i in circles[0, :]:
-        #         center = (i[0], i[1])
-        #         # circle center
-        #         cv.circle(img, center, 1, (0, 100, 100), 3)
-        #         # circle outline
-        #         radius = i[2]
-        #         cv.circle(img, center, radius, (255, 0, 255), 3)
-        # cv.imshow("mb",img)
+        ic(circles)
         if circles is not None:
-            return (circles[0][:1]) #return circle center coordinates
+            circles = np.uint16(np.around(circles))
+            for i in circles[0, :]:
+                center = (i[0], i[1])
+                # circle center
+                cv.circle(img, center, 1, (0, 100, 100), 3)
+                # circle outline
+                radius = i[2]
+                cv.circle(img, center, radius, (255, 0, 255), 3)
+        cv.imshow("mb",img)
+        if circles is not None:
+            return (circles[0][:2]) #return circle center coordinates
+
+    def findRobotAruco(self):
+        for i in range(self.locretries):
+            data = None
+            data = self._findRobotAruco()
+            if data is not None:
+                (x,y,o) = data
+                return(x,y,o)
+
+
+    def _findRobotAruco(self):
+        img = self.cap.getCorrectedFrame(self.downscale)
+        h,w,d = img.shape
+        hsl = cv.cvtColor(img, cv.COLOR_BGR2HSV)
+        # thres = cv.inRange(hsl, self.pathLo, self.pathHi)
+        thres = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+        # thres = cv.medianBlur(thres, 3)
+        # thres = cv.GaussianBlur(thres, self.pathKernel, 1)
+        # cv.imshow("raw", thres)
+        # ic("Searching")
+
+        # cv.imshow('raw', img)
+        # img = cv.cvtColor(i, cv.COLOR_BGR2GRAY)
+        # img
+
+        arucoDict = cv.aruco.Dictionary_get(cv.aruco.DICT_4X4_250)
+        arucoParams = cv.aruco.DetectorParameters_create()
+        (corners, ids, rejected) = cv.aruco.detectMarkers(img, arucoDict, parameters=arucoParams)
+
+        if len(corners) > 0:
+        # # flatten the ArUco IDs list
+            ids = ids.flatten()
+        #     # loop over the detected ArUCo corners
+            for (markerCorner, markerID) in zip(corners, ids):
+        #         # extract the marker corners (which are always returned in
+        #         # top-left, top-right, bottom-right, and bottom-left order)
+                corners = markerCorner.reshape((4, 2))
+                
+                (topLeft, topRight, bottomRight, bottomLeft) = corners
+                heading = math.atan2((topLeft[1]-bottomLeft[1]),(topLeft[0]-bottomLeft[0]+1e-6))
+        #         # convert each of the (x, y)-coordinate pairs to integers
+                topRight = (int(topRight[0]), int(topRight[1]))
+                bottomRight = (int(bottomRight[0]), int(bottomRight[1]))
+                bottomLeft = (int(bottomLeft[0]), int(bottomLeft[1]))
+                topLeft = (int(topLeft[0]), int(topLeft[1]))
+                # heading = math.atan2((topLeft[1]-bottomLeft[1])/(topLeft[0]-bottomLeft[0]+1e-6))
+                if heading < 0:
+                    heading = np.pi * 2 + heading
+                heading = heading * 180 / np.pi
+                # heading -= self.headingOffset
+            
+        		# draw the bounding box of the ArUCo detection
+            # cv.line(img, topRight, bottomRight, (0, 255, 0), 2)
+            # cv.line(img, topLeft, topRight, (0, 255, 0), 2)
+            # cv.line(img, bottomRight, bottomLeft, (0, 255, 0), 2)
+            # cv.line(img, bottomLeft, topLeft, (0, 255, 0), 2)
+            # compute and draw the center (x, y)-coordinates of the ArUco
+            # marker
+            cX = int((topLeft[0] + bottomRight[0]) / 2.0)
+            cY = int((topLeft[1] + bottomRight[1]) / 2.0)
+            
+            # cv.circle(img, (cX, cY), 4, (0, 0, 255), -1)
+            # # draw the ArUco marker ID on the image
+            # cv.putText(img, str(markerID),
+            #     (topLeft[0], topLeft[1] - 15), cv.FONT_HERSHEY_SIMPLEX,
+            #     0.5, (0, 255, 0), 2)
+            # print("[INFO] ArUco marker ID: {}".format(markerID))
+            # show the output image
+            # cv.imshow("Image", img)
+            # cv.waitKey(0)
+            ic(cX, cY, heading)
+            return (cX,cY, heading)
+            
+
+    
 
     def detectBlocks(self):
         img = self.cap.getCorrectedFrame(self.downscale)
@@ -243,6 +336,7 @@ class arena:
         if(len(blocks) > 0):
             for b in blocks:
                 self.map = self.drawDiagnosticPoint(self.map, b, (255,0,0))
+        # self.map = self.drawDiagnosticPoint(self.map, self.findRobot(), (127,255,255))
         return self.map
 
         
@@ -250,15 +344,15 @@ class arena:
 
 if __name__ == "__main__":
     map = arena("http://localhost:8081/stream/video.mjpeg")
-    img = map.getDiagnosticMap()
+    # img = map.getDiagnosticMap()
     # map = arena("C:\\Users\\yehen\\Videos\\2022-11-10 09-09-04.m4v")
     while True:
         
-        # map.findRobot()
-        map.detectBlocks()
+        ic(map.findRobotAruco())
+        # map.detectBlocks()
         # img = map.getDiagnosticMap()
 
-        cv.imshow("test", img)
+        # cv.imshow("test", img)
         if cv.waitKey(1) == ord('q'):
             break
 

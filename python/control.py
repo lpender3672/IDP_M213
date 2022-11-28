@@ -7,82 +7,115 @@ import math
 
 import time
 
-address = "http://192.168.137.18"
-headingE = 1
-distE = 5
+address = "http://192.168.137.193"
+headingE = 3
+distE = 20
+maxGo = 20000
+
 
 def calibrateMotion(robot: WifiRobot, world: arena, duration):
-    pastCoord = world.findRobot()
+    px,py,po = world.findRobotAruco()
     robot.tforward(duration)
     time.sleep(duration/1000 + 1)
-    currentCoord = world.findRobot()
+    cx,cy,co = world.findRobotAruco()
     
-    distanceMoved = np.abs(np.linalg.norm(currentCoord-pastCoord))
+    distanceMoved = math.dist((px, py), (cx, cy))
     tranMult = distanceMoved/duration
 
-    dy = currentCoord[1]-pastCoord[1]
-    dx = currentCoord[0]-pastCoord[0]
-    theta0 = math.atan2(dy, dx)
-    if theta0<0:
-        theta0 += 2*np.pi
-    
-    pastCoord = world.findRobot()
+    time.sleep(1)
+
     robot.tcw(duration)
     time.sleep(duration/1000 + 1)
-    robot.tforward(duration)
+    dx, dy, do = world.findRobotAruco()
+    rotation = do-co
+    rotMultCW = rotation / duration
+
+    time.sleep(1)
+    robot.tccw(duration)
     time.sleep(duration/1000 + 1)
-    currentCoord = world.findRobot()
+    ex, ey, eo = world.findRobotAruco()
+    rotation = do-eo
+    rotMultCCW = rotation / duration
     
-    dy = currentCoord[1]-pastCoord[1]
-    dx = currentCoord[0]-pastCoord[0]
-    theta1 = math.atan2(dy, dx)
-    if theta1<0:
-        theta1 += 2*np.pi
-
-    rotated = (theta1 - theta0) / np.pi * 180
-    rotMult = rotated/duration
-    
-    currentHeading = theta1
-
         
-    return (tranMult, rotMult, currentHeading)
+    return (tranMult, rotMultCW, rotMultCCW)
 
-def pathFindTo(robot: WifiRobot, world: arena, start, end):
-    dy = end[1]-start[1]
-    dx = end[0]-start[0]
+def correctHeading(robot: WifiRobot, world: arena, targetHeading):
+    ic(targetHeading)
+    _, _, po = world.findRobotAruco()
 
-    vector = math.atan2(dy, dx) * 180/np.pi
+    deltaHeading = targetHeading - po
+    if deltaHeading > 180:
+        deltaHeading = 180-deltaHeading
+    ic(deltaHeading)
+
+    # if abs(deltaHeading) > headingE: #correction needed
+    if deltaHeading > 0:
+        robot.tcw(abs(deltaHeading) / rotMultCW)
+        time.sleep(abs(deltaHeading) / rotMultCW / 1000 + 0.1)
+    else:
+        robot.tccw((abs(deltaHeading)) / rotMultCCW)
+        time.sleep(abs(deltaHeading) / rotMultCCW / 1000 + 0.1)
+
+    _, _, po = world.findRobotAruco()
+
+    deltaHeading = targetHeading - po
+    if deltaHeading > 180:
+        deltaHeading = 180-deltaHeading
+    if abs(deltaHeading) > headingE: #correction needed
+        correctHeading(robot, world, targetHeading)
+
+
+
+
+
+def pathFindTo(robot: WifiRobot, world: arena, end):
+
+    # px, py, po = world.findRobotAruco()
+    data = world.findRobotAruco()
+    while data is None:
+        robot.tforward(1000)
+        time.sleep(2)
+        data = world.findRobotAruco()
+    px, py, po = data
+
+
+    dy = end[1]-py
+    dx = end[0]-px
+    currentHeading = po
+
+    vector = math.atan2(dy, dx) * 180 / np.pi
     if vector<0:
         vector = vector + 360
-    distance = np.abs(np.linalg.norm(end-start))
+    distance = math.dist(end, (px, py))
+    ic(distance)
 
-    deltaHeading = currentHeading - vector
-    if np.absolute(deltaHeading) > headingE: #correction needed
-        if deltaHeading > 0:
-            robot.tcw(np.absolute(deltaHeading) * rotMult)
-        else:
-            robot.tccw(np.absolute(deltaHeading) * rotMult)
-        time.sleep(np.absolute(deltaHeading) * rotMult / 1000 + 1)
+    correctHeading(robot, world, vector)
 
-    currentHeading = vector
+    dur = min([distance/tranMult, maxGo])
+    robot.tforward(dur)
+    time.sleep(dur/1000 + 0.2)
 
-    robot.tforward(distance * tranMult)
-    time.sleep(distance * tranMult/1000 + 1)
+    data = world.findRobotAruco()
+    while data is None:
+        robot.tforward(1000)
+        time.sleep(1)
+        data = world.findRobotAruco()
+    cx, cy, co = data
 
-    if(np.absolute(np.linalg.norm(end-world.findRobot())) > distE):
-        pathFindTo(robot, world, world.findRobot(), end) #recursively refine if needed
+    ic(cx,cy,co)
+    if(math.dist((cx, cy), end) > distE):
+        pathFindTo(robot, world, end) #recursively refine if needed
+    return
     
-    else:
-        return
-
-def goToTunnel(robot: WifiRobot, world: arena):
-    tunnelXY = world.t0XY
-    robotXY = world.findRobot()
-    distance = np.abs(np.linalg.norm(tunnelXY-robotXY))
-    if(np.abs(np.linalg.norm(world.t1XY-robotXY))) < distance: # if tunnel 1 is nearer, go to it
-        tunnelXY = world.t1XY
+    # def goToTunnel(robot: WifiRobot, world: arena):
+#     tunnelXY = world.t0XY
+#     robotXY = world.findRobot()
+#     distance = np.abs(np.linalg.norm(tunnelXY-robotXY))
+#     if(np.abs(np.linalg.norm(world.t1XY-robotXY))) < distance: # if tunnel 1 is nearer, go to it
+#         tunnelXY = world.t1XY
     
-    pathFindTo(robot, world, robotXY, tunnelXY)
+#     pathFindTo(robot, world, robotXY, tunnelXY)
    
 
 
@@ -91,6 +124,28 @@ if __name__ == "__main__":
     robot = WifiRobot(address)
     world = arena("http://localhost:8081/stream/video.mjpeg")
 
-    tranMult, rotMult, currentHeading = calibrateMotion(robot, world, 1000) #calibrate with 1000ms
+    tranMult, rotMultCW, rotMultCCW= calibrateMotion(robot, world, 1500) #calibrate with 1000ms
+    ic(tranMult)
+    ic(rotMultCW, rotMultCCW)
+    time.sleep(2)
 
-    goToTunnel(robot, world)
+    # correctHeading(robot, world, 350)
+
+    pathFindTo(robot, world, world.tunnelStart)
+    pathFindTo(robot, world, world.tunnelEnd)
+    pathFindTo(robot, world, world.b1)
+    correctHeading(robot, world, 90)
+    robot.drop()
+    robot.tforward(2000)
+    robot.pick()
+    pathFindTo(robot, world, world.tunnelEnd)
+    pathFindTo(robot, world, world.tunnelStart)
+    pathFindTo(robot, world, world.greenBox)
+    correctHeading(robot, world, 270)
+    robot.drop()
+    robot.tbackward(2000)
+    pathFindTo(robot, world, world.start)
+    
+
+
+    # goToTunnel(robot, world)

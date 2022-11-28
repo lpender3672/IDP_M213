@@ -114,6 +114,12 @@ class vid:
         self.rotM = cv.getRotationMatrix2D((width/2, height/2), rect[2], 1)
         return self.rotM
 
+    def getRotMAR(self):
+        (height, width ,dim) = np.shape(self.getUndistort(self.cap))
+
+        self.rotM = cv.getRotationMatrix2D((width/2, height/2), 1.5707963267948966 * 180 /np.pi, 1)
+        return self.rotM
+
 
 
 
@@ -136,9 +142,9 @@ class vid:
 if __name__ == "__main__":
 
     
-    # cap = vid("http://localhost:8081/stream/video.mjpeg")
-    cap = vid("C:\\Users\\yehen\\Videos\\2022-11-10 09-09-04.m4v")
-    cap.getRotMMAR() #enable rotation
+    cap = vid("http://localhost:8081/stream/video.mjpeg")
+    # cap = vid("C:\\Users\\yehen\\Videos\\2022-11-10 09-09-04.m4v")
+    cap.getRotMAR() #enable rotation
 
     while True:
         img = cap.getCorrectedFrame(2)
