@@ -11,6 +11,7 @@ address = "http://192.168.137.193"
 headingE = 2
 distE = 15
 maxGo = 20000
+blockTresh = 735 #less dense is higher
 
 
 def calibrateMotion(robot: WifiRobot, world: arena, duration):
@@ -126,6 +127,8 @@ if __name__ == "__main__":
     robot = WifiRobot(address)
     world = arena("http://localhost:8081/stream/video.mjpeg")
 
+    robot.amb(1)
+
     tranMult, rotMultCW, rotMultCCW= calibrateMotion(robot, world, 1500) #calibrate with 1000ms
     ic(tranMult)
     ic(rotMultCW, rotMultCCW)
@@ -141,9 +144,23 @@ if __name__ == "__main__":
     robot.tforward(2000)
     time.sleep(1)
     robot.pick()
-    time.sleep(1)
-    pathFindTo(robot, world, world.tunnelEnd)
-    pathFindTo(robot, world, world.tunnelStart)
+    robot.drop()
+    robot.pick()
+    robot.drop()
+    robot.pick()
+    time.sleep(2)
+    rdg = robot.poll()
+    if rdg >= blockTresh:
+        robot.red(1)
+    else:
+        robot.grn(1)
+    # time.sleep(1)
+    pathFindTo(robot, world, world.rampEnd)
+    pathFindTo(robot, world, world.rampStart)
+    if rdg >= blockTresh:
+        pathFindTo(robot, world, world.redBox)
+    else:
+        pathFindTo(robot, world, world.greenBox)
     pathFindTo(robot, world, world.greenBox)
     correctHeading(robot, world, 270)
     robot.drop()

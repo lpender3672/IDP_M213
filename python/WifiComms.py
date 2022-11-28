@@ -92,12 +92,31 @@ class WifiRobot:
         time.sleep(0.5)
         return
 
+    def poll(self): 
+        params = {
+            "null": "0"
+        }
+        ic(params)
+        r= requests.get(self.address, params=params)
+        ic(int(r.text))
+        time.sleep(0.5)
+        return (int(r.text))
+
     
 
  
 if __name__ == "__main__":
-    robot = WifiRobot("http://192.168.137.193")
+    robot = WifiRobot("http://192.168.137.236")
 
-    robot.amb(1)
+    robot.pick()
+    robot.drop()
+    robot.pick()
+    robot.drop()
+    robot.pick()
+    time.sleep(2)
+    robot.poll()
+    robot.drop()
+    # robot.amb(0)
+
 
 
