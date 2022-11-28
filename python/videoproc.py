@@ -17,14 +17,21 @@ class arena:
     tunnelStart = (841, 242)
     tunnelEnd = (853, 603)
     b1 = (651, 585)
+    B1 = (213, 511) #detection (raw coords)
     b2 = (521, 585)
+    B2 = (213, 382)
     b3 = (393, 585)
+    B3 = (219, 258)
     headingOffset = 180
     locretries = 10
 
     #config vars
     downscale = 1
     bakRotThetaAvg = 1.5707963267948966
+    blockRange = 75 #range within which blocks are considered
+    blockRoughnessThres1 = 50000
+    blockRoughnessThres2 = 43500
+    blockRoughnessThres3 = 43500
 
     pathLo = (0, 0, 185)
     pathHi = (255, 30, 255)
@@ -48,8 +55,8 @@ class arena:
 
     blockLo = (0, 0, 0)
     blockHi = (210, 255, 110)
-    blockSmall = 70 #blockSizes
-    blockLarge = 120
+    blockSmall = 150 #blockSizes
+    blockLarge = 400
 
     ntmax = 15  
 
@@ -294,19 +301,29 @@ class arena:
     
 
     def detectBlocks(self):
-        img = self.cap.getCorrectedFrame(self.downscale)
+        # img = self.cap.getCorrectedFrame(self.downscale)
+        imger = []
+        for n in range(100): #median blur to get better resolution
+            img = self.cap.getRaw()
+            imger.append(img)
+        # ic(np.shape(imger))
+        img = np.mean(imger, axis = 0).astype(np.uint8)
+        # ic(np.shape(img))
 
+        
+        b,g,r = cv.split(img)
         luv = cv.cvtColor(img, cv.COLOR_BGR2LUV)
-        # l,u,v = cv.split(luv)
+        l,u,v = cv.split(luv)
 
         thres = cv.inRange(luv,(0, 0, 0),(210, 255, 110))
-        # thresint = cv.cvtColor(thres, cv.COLOR_GRAY2BGR)
-        # cv.imshow("ti", thresint)
+        thresint = cv.cvtColor(thres, cv.COLOR_GRAY2BGR)
+        
         # cv.imshow('l', l)
         # cv.imshow('u', u)
         # cv.imshow('v', v)
 
         cnts, _ = cv.findContours(thres, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+        cv.drawContours(thresint, cnts, -1, (0,255,0), 2)
         blocks = []
         for c in cnts:
             M = cv.moments(c)
@@ -314,9 +331,68 @@ class arena:
             if M["m00"] < self.blockLarge and M["m00"] > self.blockSmall:
                 cx = int(M['m10']/M['m00'])
                 cy = int(M['m01']/M['m00'])
-                blocks.append((cx, cy))
+
+                #start FFT magic
+                x,y,w,h = cv.boundingRect(c) #get bounding box
+                croppedThres = thres[y: y+h, x: x+h]
+                croppedR = r[y: y+h, x: x+h]
+                # cv.imshow("r", croppedR)
+                # cv.imshow("cthres", croppedThres)
+                thresBlur = cv.GaussianBlur(croppedThres, (5,5), 0, 0)
+                thresBlur = thresBlur.astype('float64')
+                thresMax = np.max(abs(thresBlur))
+                thresBlur *= 1/thresMax
+                croppedR = croppedR.astype('float64')
+                croppedR *= thresBlur
+                croppedR = croppedR.astype('uint8')
+                det = cv.equalizeHist(croppedR) 
+                cv.imshow("det", det)          
+                laplacian = cv.Laplacian(det, cv.CV_64F)
+                sobel = cv.Sobel(det, cv.CV_64F, 1, 1)
+                masked = croppedThres * sobel
+                # cv.imshow("crop", masked)
+                f = np.fft.fft2(det)
+
+                #LPF Magic
+                cutoff = (np.divide(masked.shape, 5).astype('int'))#discard lower freqs
+                fmask = np.zeros(f.shape)
+                for y in range(cutoff[0], fmask.shape[0]- cutoff[0]+1):
+                    for x in range(cutoff[1], fmask.shape[1] - cutoff[1]+1):
+                        fmask[y, x] = 1
+                ff = np.multiply(f, fmask)
+                roughness = np.sum(np.abs(ff))
+
+                blocks.append((cx, cy, roughness))
+
+        ic(blocks)
+
+        blockIden = {
+            "b1": None,
+            "b2": None,
+            "b3": None,
+        }
+
+        for block in blocks:
+            if math.dist(block[:2], self.B1) < self.blockRange:
+                if block[2] > self.blockRoughnessThres1:
+                    blockIden['b1'] = "rough"
+                else:
+                    blockIden['b1'] = "smooth"
+            elif math.dist(block[:2], self.B2) < self.blockRange:
+                if block[2] > self.blockRoughnessThres2:
+                    blockIden['b2'] = "rough"
+                else:
+                    blockIden['b2'] = "smooth"
+            elif math.dist(block[:2], self.B3) < self.blockRange:
+                if block[2] > self.blockRoughnessThres3:
+                    blockIden['b3'] = "rough"
+                else:
+                    blockIden['b3'] = "smooth"
+
+
+        # cv.imshow("ti", thresint)
         
-        return blocks
+        return blockIden
 
     def identifyNearestBlock(self):
         pass
@@ -348,8 +424,8 @@ if __name__ == "__main__":
     # map = arena("C:\\Users\\yehen\\Videos\\2022-11-10 09-09-04.m4v")
     while True:
         
-        ic(map.findRobotAruco())
-        # map.detectBlocks()
+        # ic(map.findRobotAruco())
+        ic(map.detectBlocks())
         # img = map.getDiagnosticMap()
 
         # cv.imshow("test", img)

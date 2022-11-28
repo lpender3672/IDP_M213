@@ -8,8 +8,8 @@ import math
 import time
 
 address = "http://192.168.137.193"
-headingE = 3
-distE = 20
+headingE = 2
+distE = 15
 maxGo = 20000
 
 
@@ -45,6 +45,7 @@ def correctHeading(robot: WifiRobot, world: arena, targetHeading):
     _, _, po = world.findRobotAruco()
 
     deltaHeading = targetHeading - po
+    # deltaHeading = min(deltaHeading, 360+deltaHeading) #watch this line
     if deltaHeading > 180:
         deltaHeading = 180-deltaHeading
     ic(deltaHeading)
@@ -74,7 +75,8 @@ def pathFindTo(robot: WifiRobot, world: arena, end):
     # px, py, po = world.findRobotAruco()
     data = world.findRobotAruco()
     while data is None:
-        robot.tforward(1000)
+        robot.tbackward(1000)
+        robot.tforward(2000)
         time.sleep(2)
         data = world.findRobotAruco()
     px, py, po = data
@@ -137,7 +139,9 @@ if __name__ == "__main__":
     correctHeading(robot, world, 90)
     robot.drop()
     robot.tforward(2000)
+    time.sleep(1)
     robot.pick()
+    time.sleep(1)
     pathFindTo(robot, world, world.tunnelEnd)
     pathFindTo(robot, world, world.tunnelStart)
     pathFindTo(robot, world, world.greenBox)

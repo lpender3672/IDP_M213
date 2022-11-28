@@ -65,10 +65,39 @@ class WifiRobot:
         time.sleep(0.5)
         return
 
+    def red(self, state):
+        params = {
+            "r": state
+        }
+        ic(params)
+        requests.get(self.address, params=params)
+        time.sleep(0.5)
+        return
+
+    def grn(self, state):
+        params = {
+            "g": state
+        }
+        ic(params)
+        requests.get(self.address, params=params)
+        time.sleep(0.5)
+        return
+
+    def amb(self, state):
+        params = {
+            "a": state
+        }
+        ic(params)
+        requests.get(self.address, params=params)
+        time.sleep(0.5)
+        return
+
+    
+
  
 if __name__ == "__main__":
     robot = WifiRobot("http://192.168.137.193")
 
-    robot.drop()
+    robot.amb(1)
 
 
