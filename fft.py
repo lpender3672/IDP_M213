@@ -97,10 +97,10 @@ x,y,w,h = cv.boundingRect(cnt) #get bounding box
 croppedThres = thres[y: y+h, x: x+h]
 croppedR = r[y: y+h, x: x+h]
 # thres = cv.dilate(thres, None)
-thres = cv.GaussianBlur(thres, (5,5), 0, 0)
-thres = thres.astype('float64')
-thresMax = np.max(abs(thres))
-thres *= 1/thresMax
+# thres = cv.GaussianBlur(thres, (5,5), 0, 0)
+# thres = thres.astype('float64')
+# thresMax = np.max(abs(thres))
+# thres *= 1/thresMax
 
 # thresBGR = cv.cvtColor(thres, cv.COLOR_GRAY2BGR)
 det = cv.equalizeHist(croppedR)
