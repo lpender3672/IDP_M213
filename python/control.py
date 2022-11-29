@@ -7,11 +7,27 @@ import math
 
 import time
 
-address = "http://192.168.137.193"
+address = "http://192.168.137.110"
 headingE = 2
 distE = 15
 maxGo = 20000
 blockTresh = 735 #less dense is higher
+
+def deltaAngle(t, c):
+    norm = abs(t - c)
+    delta = min(norm, 360-norm)
+
+    if (norm > 180):
+        if t > c:
+            return delta*(-1)
+        else:
+            return delta
+        
+    else:
+        if t > c:
+            return delta
+        else:
+            return delta*(-1)
 
 
 def calibrateMotion(robot: WifiRobot, world: arena, duration):
@@ -43,27 +59,48 @@ def calibrateMotion(robot: WifiRobot, world: arena, duration):
 
 def correctHeading(robot: WifiRobot, world: arena, targetHeading):
     ic(targetHeading)
-    _, _, po = world.findRobotAruco()
+    data = world.findRobotAruco()
+    while data is None:
+        robot.tbackward(1000)
+        robot.tforward(2000)
+        time.sleep(2)
+        data = world.findRobotAruco()
+    px, py, po = data
 
-    deltaHeading = targetHeading - po
-    # deltaHeading = min(deltaHeading, 360+deltaHeading) #watch this line
-    if deltaHeading > 180:
-        deltaHeading = 180-deltaHeading
+    deltaHeading = deltaAngle(targetHeading, po)
     ic(deltaHeading)
-
-    # if abs(deltaHeading) > headingE: #correction needed
     if deltaHeading > 0:
         robot.tcw(abs(deltaHeading) / rotMultCW)
         time.sleep(abs(deltaHeading) / rotMultCW / 1000 + 0.1)
-    else:
+    else: 
         robot.tccw((abs(deltaHeading)) / rotMultCCW)
         time.sleep(abs(deltaHeading) / rotMultCCW / 1000 + 0.1)
 
-    _, _, po = world.findRobotAruco()
+    # # deltaHeading = min(deltaHeading, 360+deltaHeading) #watch this line
+    # if deltaHeading > 180:
+    #     deltaHeading = 180-deltaHeading
+    # ic(deltaHeading)
+
+    # # if abs(deltaHeading) > headingE: #correction needed
+    # if deltaHeading > 0:
+    #     robot.tcw(abs(deltaHeading) / rotMultCW)
+    #     time.sleep(abs(deltaHeading) / rotMultCW / 1000 + 0.1)
+    # else:
+    #     robot.tccw((abs(deltaHeading)) / rotMultCCW)
+    #     time.sleep(abs(deltaHeading) / rotMultCCW / 1000 + 0.1)
+
+    # _, _, po = world.findRobotAruco()
+    data = world.findRobotAruco()
+    while data is None:
+        robot.tbackward(1000)
+        robot.tforward(2000)
+        time.sleep(2)
+        data = world.findRobotAruco()
+    px, py, po = data
 
     deltaHeading = targetHeading - po
-    if deltaHeading > 180:
-        deltaHeading = 180-deltaHeading
+    # if deltaHeading > 180:
+    #     deltaHeading = 180-deltaHeading
     if abs(deltaHeading) > headingE: #correction needed
         correctHeading(robot, world, targetHeading)
 
@@ -74,6 +111,7 @@ def correctHeading(robot: WifiRobot, world: arena, targetHeading):
 def pathFindTo(robot: WifiRobot, world: arena, end):
 
     # px, py, po = world.findRobotAruco()
+    ic(end)
     data = world.findRobotAruco()
     while data is None:
         robot.tbackward(1000)
@@ -129,16 +167,20 @@ if __name__ == "__main__":
 
     robot.amb(1)
 
-    tranMult, rotMultCW, rotMultCCW= calibrateMotion(robot, world, 1500) #calibrate with 1000ms
+    tranMult, rotMultCW, rotMultCCW= calibrateMotion(robot, world, 1000) #calibrate with 1000ms
     ic(tranMult)
     ic(rotMultCW, rotMultCCW)
     time.sleep(2)
 
     # correctHeading(robot, world, 350)
 
-    pathFindTo(robot, world, world.tunnelStart)
-    pathFindTo(robot, world, world.tunnelEnd)
-    pathFindTo(robot, world, world.b1)
+    robot.drop()
+    robot.grn(0)
+    robot.red(0)
+
+    pathFindTo(robot, world, world.rampStart)
+    pathFindTo(robot, world, world.rampEnd)
+    pathFindTo(robot, world, world.b3)
     correctHeading(robot, world, 90)
     robot.drop()
     robot.tforward(2000)
@@ -155,8 +197,8 @@ if __name__ == "__main__":
     else:
         robot.grn(1)
     # time.sleep(1)
-    pathFindTo(robot, world, world.rampEnd)
-    pathFindTo(robot, world, world.rampStart)
+    pathFindTo(robot, world, world.tunnelEnd)
+    pathFindTo(robot, world, world.tunnelStart)
     if rdg >= blockTresh:
         pathFindTo(robot, world, world.redBox)
     else:

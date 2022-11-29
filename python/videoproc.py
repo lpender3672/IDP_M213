@@ -12,15 +12,15 @@ class arena:
     start = (501, 74)
     redBox = (266, 124)
     greenBox = (741, 130)
-    rampStart = (175, 225)
-    rampEnd = (215, 601)
+    rampStart = (175, 193)
+    rampEnd = (190, 621)
     tunnelStart = (841, 242)
     tunnelEnd = (853, 603)
-    b1 = (651, 585)
+    b1 = (652, 522)
     B1 = (213, 511) #detection (raw coords)
     b2 = (521, 585)
     B2 = (213, 382)
-    b3 = (393, 585)
+    b3 = (391, 537)
     B3 = (219, 258)
     headingOffset = 180
     locretries = 10
@@ -424,8 +424,8 @@ if __name__ == "__main__":
     # map = arena("C:\\Users\\yehen\\Videos\\2022-11-10 09-09-04.m4v")
     while True:
         
-        # ic(map.findRobotAruco())
-        ic(map.detectBlocks())
+        ic(map.findRobotAruco())
+        # ic(map.detectBlocks())
         # img = map.getDiagnosticMap()
 
         # cv.imshow("test", img)
