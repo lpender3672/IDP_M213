@@ -106,7 +106,10 @@ class WifiRobot:
 
  
 if __name__ == "__main__":
-    robot = WifiRobot("http://192.168.137.69")
+    robot = WifiRobot("http://192.168.137.99")
+
+    robot.red(0)
+    robot.grn(0)
 
     # robot.pick()
     # robot.drop()
@@ -114,9 +117,16 @@ if __name__ == "__main__":
     # robot.drop()
     # robot.pick()
     # time.sleep(2)
-    # robot.poll()
+    # rdg = robot.poll()
     # robot.drop()
     # robot.amb(0)
+
+    # blockTresh = 720 #less dense is higher
+
+    # if rdg >= blockTresh:
+    #     robot.red(1)
+    # else:
+    #     robot.grn(1)
 
     # robot.amb(0)
     # robot.grn(0)

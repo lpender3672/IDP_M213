@@ -7,11 +7,11 @@ import math
 
 import time
 
-address = "http://192.168.137.40"
+address = "http://192.168.137.99"
 headingE = 2
 distE = 15
 maxGo = 20000
-blockTresh = 758 #less dense is higher
+blockTresh = 720 #less dense is higher
 
 def deltaAngle(t, c):
     norm = abs(t - c)
