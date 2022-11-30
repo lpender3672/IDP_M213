@@ -106,7 +106,7 @@ class WifiRobot:
 
  
 if __name__ == "__main__":
-    robot = WifiRobot("http://192.168.137.110")
+    robot = WifiRobot("http://192.168.137.69")
 
     # robot.pick()
     # robot.drop()
@@ -118,7 +118,13 @@ if __name__ == "__main__":
     # robot.drop()
     # robot.amb(0)
 
-    robot.tforward(10000)
+    # robot.amb(0)
+    # robot.grn(0)
+    # robot.red(0)
+
+    # robot.tforward(2000)
+    # robot.tcw(1000)
+    # robot.tccw(1000)
 
 
 
