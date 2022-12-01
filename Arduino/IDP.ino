@@ -1,5 +1,5 @@
-#define SECRET_SSID "INFINUSPC 3930"
-#define SECRET_PASS "08#x409C"
+#define SECRET_SSID "YOUR SSID HERE"
+#define SECRET_PASS "YOUR PASSWORD HERE"
 
 #include <SPI.h>
 #include <WiFiNINA.h>
