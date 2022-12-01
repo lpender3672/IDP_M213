@@ -11,3 +11,4 @@
 *.out
 *.synctex.gz
 *.pdf
+!OpenCV IDP Final Report and Failure Analysis.pdf
