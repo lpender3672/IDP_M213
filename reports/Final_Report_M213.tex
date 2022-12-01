@@ -103,7 +103,7 @@
 The chassis design for the robot was designed to be very modular, we had multiple holes for the components fitting locations so that we can swap the positions of the sensors and other components easily to redistribute the mass in the robot. The parts were laser cut instead of handsawed because it is faster and it gives more precise cuts.
 
 \subsection{Sensor and Peripherals Mounting}
-\quad Our group wanted the flexibility to test up to 4 different ways of block detection and differentiation and we built the robot to accomodate all the sensors and peripheral devices required for those detection methods. The 4 methods and their mounting methods are listed in \Cref{tab:mount_sens}
+\quad Our group wanted the flexibility to test up to 4 different ways of block detection and differentiation and we built the robot to accomodate all the sensors and peripheral devices required for those detection methods. The 4 methods and their mounting methods are listed in \Cref{tab:mount_sens}. Many of these sensors and mounts were removed in the end as we settled with OpenCV for our navigation method and the LDR method for our detection method, however the flexibility our design provided to the testing process of our team was very valuable.
 
 \begin{table}[]
     \centering
@@ -133,8 +133,12 @@ The chassis design for the robot was designed to be very modular, we had multipl
 
 \quad The idea we settled on was to use a scissor like gripping mechanism as shown in \Cref{fig:grip_mech}. This might have slightly more parts but it is more reliable than the rack and pinion and the center of mass is not affected.
 
+\subsubsection{Assembly}
+
+\quad The assembly of the grabber mechanism required the use of pin joints to allow the parts of the mechanism to rotate and grab the block. We made the pin joints by having bolts separate the pieces with nuts and washers so that the joints will have less friction and will act like a pin joint. Another problem we faced during assembly was that the parts did not mesh together really well because of the difference in heights of the parts and the robot chassis being slightly warped due to some bolts joining the top and bottom plate together. We resolved this by having a long bolt through the top and bottom plate and used nuts fix the distance from the top to the bottom plate near the grabber. This ensured that the grabber gears meshed well together.
+
 \subsection{Cardboard Model and CAD}
-\quad We have made a cardboard model prototype for testing purposes as can be seen in \Cref{fig:cardboard_model}. This was laser cut out of cardboard and assembled using hot glue. The cardboard cut outs were designed first in a Solidworks model of the robot as can be seen in \Cref{fig:isometric}.
+\quad We have made a cardboard model prototype for testing purposes as can be seen in \Cref{fig:cardboard_model}. This was laser cut out of cardboard and assembled using hot glue. The cardboard cut outs were designed first in a Solidworks model of the robot as can be seen in \Cref{fig:isometric}. Our first wooden robot was produced fairly quickly but was determined to be the final robot instead of reproducing another one to allow the other teams to continue testing the robot which was more critical to the project at the time.
 
 \section{Electrical}
 \quad The electrical teams consists Hor Ye Heng (yhh35) and Yiheng Liu (yl827). We have finished designing what sensors to use for different functions and now working with the software team to test all the sensors.
