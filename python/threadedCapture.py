@@ -28,7 +28,7 @@ class VideoCapture:
   def read(self):
     return self.q.get()
 
-
+#this section only for testing
 
 if __name__ == "__main__":
   cap = VideoCapture("http://localhost:8081/stream/video.mjpeg")

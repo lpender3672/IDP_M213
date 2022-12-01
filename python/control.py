@@ -7,12 +7,14 @@ import math
 
 import time
 
-address = "http://192.168.137.99"
-headingE = 2
-distE = 15
-maxGo = 20000
-blockTresh = 720 #less dense is higher
+address = "http://192.168.137.99" #robot IP
+headingE = 2 #max heading error
+distE = 15 #max distance error
+maxGo = 20000 #maximum time of translation per iteration
 
+blockTresh = 720 #Block density ADC reading, less dense is higher
+
+#return angle difference in vector form
 def deltaAngle(t, c):
     norm = abs(t - c)
     delta = min(norm, 360-norm)
@@ -29,7 +31,7 @@ def deltaAngle(t, c):
         else:
             return delta*(-1)
 
-
+#distance and angular displacement per ms
 def calibrateMotion(robot: WifiRobot, world: arena, duration):
     px,py,po = world.findRobotAruco()
     robot.tforward(duration)
@@ -57,6 +59,7 @@ def calibrateMotion(robot: WifiRobot, world: arena, duration):
         
     return (tranMult, rotMultCW, rotMultCCW)
 
+#recursively correct orientation of robot
 def correctHeading(robot: WifiRobot, world: arena, targetHeading):
     ic(targetHeading)
     data = world.findRobotAruco()
@@ -104,10 +107,7 @@ def correctHeading(robot: WifiRobot, world: arena, targetHeading):
     if abs(deltaHeading) > headingE: #correction needed
         correctHeading(robot, world, targetHeading)
 
-
-
-
-
+#recursively pathfind till robot is near enough to waypoints
 def pathFindTo(robot: WifiRobot, world: arena, end):
 
     # px, py, po = world.findRobotAruco()
@@ -149,27 +149,18 @@ def pathFindTo(robot: WifiRobot, world: arena, end):
         pathFindTo(robot, world, end) #recursively refine if needed
     return
     
-    # def goToTunnel(robot: WifiRobot, world: arena):
-#     tunnelXY = world.t0XY
-#     robotXY = world.findRobot()
-#     distance = np.abs(np.linalg.norm(tunnelXY-robotXY))
-#     if(np.abs(np.linalg.norm(world.t1XY-robotXY))) < distance: # if tunnel 1 is nearer, go to it
-#         tunnelXY = world.t1XY
-    
-#     pathFindTo(robot, world, robotXY, tunnelXY)
-   
-
-
 if __name__ == "__main__":
 
+    #init
     robot = WifiRobot(address)
     world = arena("http://localhost:8081/stream/video.mjpeg")
 
-
+    #init robot
     robot.drop()
     robot.grn(0)
-    robot.red(0)
+    robot.red(0)    
 
+    #start movement
     robot.amb(1)
 
     tranMult, rotMultCW, rotMultCCW= calibrateMotion(robot, world, 1000) #calibrate with 1000ms
@@ -177,131 +168,39 @@ if __name__ == "__main__":
     ic(rotMultCW, rotMultCCW)
     time.sleep(2)
 
-    # correctHeading(robot, world, 350)
-
-    robot.drop()
-    robot.grn(0)
-    robot.red(0)
-
+    #start pathfind routine
     pathFindTo(robot, world, world.rampStart)
     pathFindTo(robot, world, world.rampEnd)
     pathFindTo(robot, world, world.b3)
     correctHeading(robot, world, 90)
     robot.drop()
-    robot.tforward(2000)
+    robot.tforward(2000) #move in to pick up block
     time.sleep(1)
+
+    #wiggle arms to try to force block to a known position
     robot.pick()
     robot.drop()
     robot.pick()
     robot.drop()
     robot.pick()
     
-    rdg = robot.poll()
+    rdg = robot.poll() #read ADC
     if rdg >= blockTresh:
         robot.red(1)
     else:
         robot.grn(1)
-    # time.sleep(1)
-    # pathFindTo(robot, world, world.arenaCenterR)
-    pathFindTo(robot, world, world.arenaCenterG)
-    pathFindTo(robot, world, world.tunnelEnd)
+    pathFindTo(robot, world, world.arenaCenterG) #avoid colision with other blocks
+    pathFindTo(robot, world, world.tunnelEnd) #go back to drop off side
     pathFindTo(robot, world, world.tunnelStart)
     if rdg >= blockTresh:
         pathFindTo(robot, world, world.redBox)
     else:
         pathFindTo(robot, world, world.greenBox)
-    # pathFindTo(robot, world, world.greenBox)
-    correctHeading(robot, world, 270)
+    correctHeading(robot, world, 270) #face center of square
     robot.drop()
     robot.tbackward(2000)
-    pathFindTo(robot, world, world.start)
+    pathFindTo(robot, world, world.start) #return home
     robot.grn(0)
     robot.red(0)
     robot.amb(0)
 
-    # #get second block
-    # pathFindTo(robot, world, world.rampStart)
-    # pathFindTo(robot, world, world.rampEnd)
-    # pathFindTo(robot, world, world.b2)
-    # correctHeading(robot, world, 90)
-    # robot.drop()
-    # robot.tforward(2000)
-    # time.sleep(1)
-    # robot.pick()
-    # robot.drop()
-    # robot.pick()
-    # robot.drop()
-    # robot.pick()
-    
-    # rdg = robot.poll()
-    # if rdg >= blockTresh:
-    #     robot.red(1)
-    # else:
-    #     robot.grn(1)
-    # # time.sleep(1)
-    # # pathFindTo(robot, world, world.arenaCenterR)
-    # pathFindTo(robot, world, world.arenaCenterG)
-    # pathFindTo(robot, world, world.tunnelEnd)
-    # pathFindTo(robot, world, world.tunnelStart)
-    # if rdg >= blockTresh:
-    #     pathFindTo(robot, world, world.redBox)
-    # else:
-    #     pathFindTo(robot, world, world.greenBox)
-    # # pathFindTo(robot, world, world.greenBox)
-    # correctHeading(robot, world, 270)
-    # robot.drop()
-    # robot.tbackward(2000)
-    # pathFindTo(robot, world, world.start)
-    # robot.grn(0)
-    # robot.red(0)
-
-    # #get third block
-    # pathFindTo(robot, world, world.rampStart)
-    # pathFindTo(robot, world, world.rampEnd)
-    # pathFindTo(robot, world, world.b1)
-    # correctHeading(robot, world, 90)
-    # robot.drop()
-    # robot.tforward(2000)
-    # time.sleep(1)
-    # robot.pick()
-    # robot.drop()
-    # robot.pick()
-    # robot.drop()
-    # robot.pick()
-    
-    # rdg = robot.poll()
-    # if rdg >= blockTresh:
-    #     robot.red(1)
-    # else:
-    #     robot.grn(1)
-    # # time.sleep(1)
-    # # pathFindTo(robot, world, world.arenaCenterR)
-    # # pathFindTo(robot, world, world.arenaCenterG)
-    # pathFindTo(robot, world, world.tunnelEnd)
-    # pathFindTo(robot, world, world.tunnelStart)
-    # if rdg >= blockTresh:
-    #     pathFindTo(robot, world, world.redBox)
-    # else:
-    #     pathFindTo(robot, world, world.greenBox)
-    # # pathFindTo(robot, world, world.greenBox)
-    # correctHeading(robot, world, 270)
-    # robot.drop()
-    # robot.tbackward(2000)
-    # pathFindTo(robot, world, world.start)
-    # robot.grn(0)
-    # robot.red(0)
-
-    # correctHeading(robot, world, 10)
-    # correctHeading(robot, world, 350) 
-    # correctHeading(robot, world, 10)
-    # correctHeading(robot, world, 350) 
-    # correctHeading(robot, world, 180)
-    # correctHeading(robot, world, 181) 
-    # correctHeading(robot, world, 179)
-    # correctHeading(robot, world, 180)
-    # correctHeading(robot, world, 181) 
-    # correctHeading(robot, world, 179)
-
-
-
-    # goToTunnel(robot, world)

@@ -11,6 +11,7 @@ class WifiRobot:
     def __init__(self, address) -> None:
         self.address = address
 
+    #move forward (time)
     def tforward(self, millis:int):
         params = {
             "go": str(int(millis))
@@ -28,7 +29,8 @@ class WifiRobot:
         requests.get(self.address, params=params)
         time.sleep(0.5)
         return
-
+        
+    #rotate (time)
     def tcw(self, millis):
         params = {
             "rcw": str(int(millis))
@@ -104,7 +106,7 @@ class WifiRobot:
 
     
 
- 
+#this section only for testing
 if __name__ == "__main__":
     robot = WifiRobot("http://192.168.137.99")
 

@@ -5,22 +5,23 @@ import math
 from icecream import ic
 
 class vid:
+    #distortion correction coefficients
     DIM=(1012, 760)
     K = np.array([[567.4130565572482, 0.0, 501.39791714355], [0.0, 567.3325405728447, 412.9039077874256], [0.0, 0.0, 1.0]])
     D = np.array([[-0.05470334257497442], [-0.09142371384400942], [0.17966906821072895], [-0.08708720575337928]])
     
     def __init__(self, name) -> None:
         self.cap = VideoCapture(name)
-        # self.cap = cv.VideoCapture(name)
         pass
 
+    #get uncorrected frame
     def getRaw(self):
         img = self.cap.read()
         return img
 
+    #get undistorted frame
     def getUndistort(self, balance=0.0, dim2=None, dim3=None):
         img = self.cap.read()
-        # ret, img = self.cap.read()
         dim1 = img.shape[:2][::-1]  #dim1 is the dimension of input image to un-distort    
         if not dim2:
             dim2 = dim1    
@@ -34,6 +35,7 @@ class vid:
 
         return undistorted_img
 
+    #automatic rotation correction with Hough Lines transform
     def getRotMHL(self, nframes: int = 20):
 
         (height, width ,dim) = np.shape(self.getUndistort(self.cap))
@@ -75,17 +77,18 @@ class vid:
 
             rotTheta[r] = rotTheta[r] / len(lines)
         
+        #calculate how much the frame is rotated and reverse that rotation
         rotThetaAvg = np.average(rotTheta)
         rotThetaAvg = math.atan(rotThetaAvg)
         rotThetaAvg += np.pi/2
         # ic(rotThetaAvg)
-        self.rotM = cv.getRotationMatrix2D((width/2, height/2), rotThetaAvg * 180 / np.pi, 1) #???????
+        self.rotM = cv.getRotationMatrix2D((width/2, height/2), rotThetaAvg * 180 / np.pi, 1)
 
         # return rotThetaAvg
         return self.rotM
 
     #WARN: Broken with blocks present
-    def getRotMMAR(self): #min area rect implementation
+    def getRotMMAR(self): #min area rect implementation of automatic rotation correction
         (height, width ,dim) = np.shape(self.getUndistort(self.cap))
         pathLo = (0, 0, 180)
         pathHi = (255, 30, 255)
@@ -114,21 +117,20 @@ class vid:
         self.rotM = cv.getRotationMatrix2D((width/2, height/2), rect[2], 1)
         return self.rotM
 
+    #precalibrated fallback value of rotation angle
     def getRotMAR(self):
         (height, width ,dim) = np.shape(self.getUndistort(self.cap))
 
         self.rotM = cv.getRotationMatrix2D((width/2, height/2), 1.5707963267948966 * 180 /np.pi, 1)
         return self.rotM
 
-
-
-
+    #return undistorted and straightened frame
     def getCorrectedFrame(self, resizeFactor = 1, blurSize = 1):
 
         (_height, _width,_dim) = np.shape(self.getUndistort(self.cap))
-        dist = self.getUndistort(self.cap)
-        
+        dist = self.getUndistort(self.cap)        
 
+        #resize
         distOR = cv.warpAffine(src=dist, M=self.rotM, dsize=(_width, _height))
         dim = (int(_width/resizeFactor), int(_height/resizeFactor))
         distOR = cv.GaussianBlur(distOR, (blurSize, blurSize), 1)
@@ -137,7 +139,7 @@ class vid:
         return distOR
 
 
-
+#this section only for testing
 
 if __name__ == "__main__":
 

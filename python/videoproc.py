@@ -19,74 +19,80 @@ class arena:
     arenaCenterG = (624, 479)
     arenaCenterR = (400, 479)
     b1 = (652, 522)
-    B1 = (213, 511) #detection (raw coords)
+    B1 = (213, 511) #FFT detection (raw coords)
     b2 = (521, 585)
-    B2 = (213, 382)
-    b3 = (391, 537)
-    B3 = (219, 258)
-    headingOffset = 180
-    locretries = 10
+    B2 = (213, 382) #FFT detection (raw coords)
+    b3 = (391, 537) 
+    B3 = (219, 258) #FFT detection (raw coords)
 
-    #config vars
-    downscale = 1
-    bakRotThetaAvg = 1.5707963267948966
+    
+
+    #config vars 
+    downscale = 1 #how much to resize incoming image (factor)
+    bakRotThetaAvg = 1.5707963267948966 #pre calibrated world rotation
+    locretries = 10 #how many frames to acquire to try to find robot before giving up
+
     blockRange = 75 #range within which blocks are considered
-    blockRoughnessThres1 = 50000
+    blockRoughnessThres1 = 50000 #FFT magnitude thresholds
     blockRoughnessThres2 = 43500
     blockRoughnessThres3 = 43500
 
+    #feature detection thresholds
     pathLo = (0, 0, 185)
     pathHi = (255, 30, 255)
     pathKernel = (3,3)
-
+    #green box
     gLo = (66, 30, 70)
     gHi = (85, 255, 255)
     gKernel = (3,3)
-
+    #red box
     rLo = (100, 33, 41)
     rHi = (120, 255, 243)
     rKernel = (3,3)
-
+    #obstacles
     oLo = (27, 50, 182)
     oHi = (52, 255, 255)
     oKernel = (15,5)
-
+    #robot target detection (deprecated)
     robotMedianBlur = 5
     robotLo = (30, 50, 0)
     robotHi = (50, 255, 255)
-
+    #blocks
     blockLo = (0, 0, 0)
     blockHi = (210, 255, 110)
     blockSmall = 150 #blockSizes
     blockLarge = 400
 
-    ntmax = 15  
+    ntmax = 15  #temporal median filtering frame number
 
-    aruco = 119  
+    aruco = 119  #aruco marker index
 
 
     def __init__(self, name):
         self.cap = vid(name)
         ic(self.cap.getRotMAR()) #initialise rotation too
         
-
+    #helper to draw points on image for debugging
     def drawDiagnosticPoint(self, frame, point, color):
         return cv.circle(frame, point, radius=3, color=color, thickness=-1)
 
+    #detect all features on map and cache (also does temporal median filtering)
     def grabAll(self, nframes = 20):
 
         img = self.cap.getCorrectedFrame(self.downscale)
-        shape = np.shape(cv.cvtColor(img, cv.COLOR_BGR2GRAY))
+        shape = np.shape(cv.cvtColor(img, cv.COLOR_BGR2GRAY)) #image dimensions
 
+        #cache n frames
         self.path = np.empty(shape)
         self.gbox = np.empty(shape)
         self.rbox = np.empty(shape)
         self.obox = np.empty(shape)
 
+        #acquire frames
         for i in range(nframes):
             img = self.cap.getCorrectedFrame(self.downscale)
             hsv = cv.cvtColor(img, cv.COLOR_BGR2HSV)
-            hsvI = cv.cvtColor(cv.bitwise_not(img), cv.COLOR_BGR2HSV)
+            hsvI = cv.cvtColor(cv.bitwise_not(img), cv.COLOR_BGR2HSV) #inverted HSV
 
             #extract path
             tresh_path = cv.inRange(hsv, self.pathLo, self.pathHi)
@@ -99,7 +105,7 @@ class arena:
             self.path = np.dstack((self.path, tresh_path))
             
 
-            #extract green
+            #extract green box
             tresh_G = cv.inRange(hsv, self.gLo, self.gHi)
             tresh_G = cv.GaussianBlur(tresh_G, (15,15), 1)
             rkernel = np.ones(self.gKernel, np.uint8)
@@ -108,7 +114,7 @@ class arena:
             self.gbox = np.dstack((self.gbox, tresh_G))
             # ic(self.gbox)
 
-            #extract red
+            #extract red box
             (hr,sr,vr) = cv.split(hsvI)
             hr = np.add(hr, 30)
             hsvIR = cv.merge((hr, sr, vr))
@@ -119,7 +125,7 @@ class arena:
             tresh_R = cv.dilate(tresh_R, rkernel, iterations=1)
             self.rbox = np.dstack((self.rbox, tresh_R))
 
-            #extract lime
+            #extract lime obstacle
             tresh_O = cv.inRange(hsv, self.oLo, self.oHi)
             tresh_O = cv.medianBlur(tresh_O, 3)
             rkernel = np.ones(self.oKernel, np.uint8) #asymmetrical dilate to make the endpoint detection more reliable
@@ -127,16 +133,13 @@ class arena:
             self.obox = np.dstack((self.obox, tresh_O))         
 
 
-        #compute medians
+        #compute image medians
         self.rbox = np.median(self.rbox, axis=-1).astype(np.uint8)
         self.gbox = np.median(self.gbox, axis=-1).astype(np.uint8)
         self.path = np.median(self.path, axis=-1).astype(np.uint8)
         self.obox = np.median(self.obox, axis=-1).astype(np.uint8)
 
-        # cv.imshow("obox", self.obox)
-        # cv.waitKey(500)
-
-        #get path mask
+        #get path mask to isolate noisy pixels
         # self.pathMask = np.zeros(np.shape(self.path))
         # pathCnts,_ = cv.findContours(self.path, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
         # maxPathMoment = 0
@@ -150,10 +153,8 @@ class arena:
         # self.pathMask = cv.dilate(self.pathMask, None, iterations=2)
         # self.path = cv.bitwise_and(self.path, self.pathMask.astype(np.uint8)) #mask path
 
-        # find green square
+        # find green square center
         cnts,_ = cv.findContours(self.gbox, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-        # gc = cv.cvtColor(tresh_G, cv.COLOR_GRAY2BGR)
-        # cv.drawContours(gc, cnts, -1, (0,255,0), 2)
         momentGMax = 0
         idxGMax = 0;
         for i in range(len(cnts)):
@@ -161,15 +162,13 @@ class arena:
             if M['m00'] > momentGMax:
                 idxGMax = i
                 momentGMax = M["m00"]
-        M = cv.moments(cnts[idxGMax])
+        M = cv.moments(cnts[idxGMax]) #only consider largest contour (assume all others are noise)
         cx = int(M['m10']/M['m00'])
         cy = int(M['m01']/M['m00'])
         self.gXY=(np.array([cx, cy]))
 
-        #find red square
+        #find red square center
         cnts,hie = cv.findContours(tresh_R.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-        # rc = cv.cvtColor(tresh_R, cv.COLOR_GRAY2BGR)
-        # cv.drawContours(rc, cnts, -1, (0,255,0), 2)
         momentRMax = 0
         idxRMax = 0;
         for i in range(len(cnts)):
@@ -182,18 +181,16 @@ class arena:
         cy = int(M['m01']/M['m00'])
         self.rXY=(np.array([cx, cy]))
         
-        #test which are in contour      
-        # cv.imshow("obox", self.obox)  
+        #test which parts of path are intersecting with obstacles to find tunnel endpoints
         overlap = cv.bitwise_and(self.obox, self.path)
         overlapRows = np.amax(overlap, axis=1)
         whiteRows = np.where(overlapRows == 255)
         overlapCols = np.amax(overlap, axis = 0)
         whiteCols = np.where(overlapCols == 255)        
-
         self.t0XY = (whiteCols[0][0], whiteRows[0][0])
         self.t1XY = (whiteCols[0][0], whiteRows[0][-1])
 
-        #extrapolate to find ramp start and end
+        #extrapolate to find ramp start and end assuming the ramp endpoints are on the same y coordinates as the tunnel endpoints
         rampRow = self.path[whiteRows[0][0]]
         whiteCols = np.where(rampRow == 255)
         self.r0XY = (whiteCols[0][0], whiteRows[0][0])
@@ -201,9 +198,9 @@ class arena:
         whiteCols = np.where(rampRow == 255)
         self.r1XY = (whiteCols[0][0], whiteRows[0][-1])
 
+    #locate round target on robot (deprecated)
     def findRobot(self):
         img = self.cap.getCorrectedFrame(self.downscale)
-        # shape = np.shape(cv.cvtColor(img, cv.COLOR_BGR2GRAY))
         
         mb = cv.medianBlur(img, self.robotMedianBlur)
         mb = cv.cvtColor(mb, cv.COLOR_BGR2HSV)
@@ -227,30 +224,19 @@ class arena:
         if circles is not None:
             return (circles[0][:2]) #return circle center coordinates
 
+    #try to find robot's aruco marker
     def findRobotAruco(self):
-        for i in range(self.locretries):
+        for i in range(self.locretries): #retry n times
             data = None
             data = self._findRobotAruco()
             if data is not None:
                 (x,y,o) = data
                 return(x,y,o)
 
-
+    #actual function to detect marker
     def _findRobotAruco(self):
         img = self.cap.getCorrectedFrame(self.downscale)
-        h,w,d = img.shape
-        hsl = cv.cvtColor(img, cv.COLOR_BGR2HSV)
-        # thres = cv.inRange(hsl, self.pathLo, self.pathHi)
-        thres = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-        # thres = cv.medianBlur(thres, 3)
-        # thres = cv.GaussianBlur(thres, self.pathKernel, 1)
-        # cv.imshow("raw", thres)
-        # ic("Searching")
-
-        # cv.imshow('raw', img)
-        # img = cv.cvtColor(i, cv.COLOR_BGR2GRAY)
-        # img
-
+        
         arucoDict = cv.aruco.Dictionary_get(cv.aruco.DICT_4X4_250)
         arucoParams = cv.aruco.DetectorParameters_create()
         (corners, ids, rejected) = cv.aruco.detectMarkers(img, arucoDict, parameters=arucoParams)
@@ -265,17 +251,16 @@ class arena:
                 corners = markerCorner.reshape((4, 2))
                 
                 (topLeft, topRight, bottomRight, bottomLeft) = corners
-                heading = math.atan2((topLeft[1]-bottomLeft[1]),(topLeft[0]-bottomLeft[0]+1e-6))
+                heading = math.atan2((topLeft[1]-bottomLeft[1]),(topLeft[0]-bottomLeft[0]+1e-6)) #compute angle of marker
         #         # convert each of the (x, y)-coordinate pairs to integers
                 topRight = (int(topRight[0]), int(topRight[1]))
                 bottomRight = (int(bottomRight[0]), int(bottomRight[1]))
                 bottomLeft = (int(bottomLeft[0]), int(bottomLeft[1]))
                 topLeft = (int(topLeft[0]), int(topLeft[1]))
-                # heading = math.atan2((topLeft[1]-bottomLeft[1])/(topLeft[0]-bottomLeft[0]+1e-6))
-                if heading < 0:
+                if heading < 0: #give a friendly range of angles
                     heading = np.pi * 2 + heading
                 heading = heading * 180 / np.pi
-                # heading -= self.headingOffset
+                
             
         		# draw the bounding box of the ArUCo detection
             # cv.line(img, topRight, bottomRight, (0, 255, 0), 2)
@@ -296,59 +281,58 @@ class arena:
             # show the output image
             # cv.imshow("Image", img)
             # cv.waitKey(0)
-            ic(cX, cY, heading)
+            # ic(cX, cY, heading)
             return (cX,cY, heading)
             
 
     
-
+    #self explainatory
     def detectBlocks(self):
-        # img = self.cap.getCorrectedFrame(self.downscale)
-        imger = []
-        for n in range(100): #median blur to get better resolution
-            img = self.cap.getRaw()
-            imger.append(img)
-        # ic(np.shape(imger))
-        img = np.mean(imger, axis = 0).astype(np.uint8)
-        # ic(np.shape(img))
-
         
+        imger = [] #prepare temporal filtering
+        for n in range(100): #temporal filter to get better resolution
+            img = self.cap.getRaw() #use raw frame because every pixel counts
+            imger.append(img)
+        img = np.mean(imger, axis = 0).astype(np.uint8)
+
+
+        #precompute all seperate channels in RGB and LUV colour spaces
         b,g,r = cv.split(img)
         luv = cv.cvtColor(img, cv.COLOR_BGR2LUV)
         l,u,v = cv.split(luv)
 
+        #find block blobs
         thres = cv.inRange(luv,(0, 0, 0),(210, 255, 110))
-        thresint = cv.cvtColor(thres, cv.COLOR_GRAY2BGR)
-        
-        # cv.imshow('l', l)
-        # cv.imshow('u', u)
-        # cv.imshow('v', v)
+        # thresint = cv.cvtColor(thres, cv.COLOR_GRAY2BGR)
+
 
         cnts, _ = cv.findContours(thres, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
-        cv.drawContours(thresint, cnts, -1, (0,255,0), 2)
+        # cv.drawContours(thresint, cnts, -1, (0,255,0), 2)
         blocks = []
         for c in cnts:
             M = cv.moments(c)
             # ic(M['m00'])
-            if M["m00"] < self.blockLarge and M["m00"] > self.blockSmall:
+            if M["m00"] < self.blockLarge and M["m00"] > self.blockSmall: #ensure the contours are actually blocks
                 cx = int(M['m10']/M['m00'])
                 cy = int(M['m01']/M['m00'])
 
                 #start FFT magic
                 x,y,w,h = cv.boundingRect(c) #get bounding box
-                croppedThres = thres[y: y+h, x: x+h]
+                croppedThres = thres[y: y+h, x: x+h] #crop 
                 croppedR = r[y: y+h, x: x+h]
                 # cv.imshow("r", croppedR)
                 # cv.imshow("cthres", croppedThres)
-                thresBlur = cv.GaussianBlur(croppedThres, (5,5), 0, 0)
-                thresBlur = thresBlur.astype('float64')
+                thresBlur = cv.GaussianBlur(croppedThres, (5,5), 0, 0) #blur mask to reduce energy at block edges
+                thresBlur = thresBlur.astype('float64') #normalise mask to perform multiply blending mode
                 thresMax = np.max(abs(thresBlur))
                 thresBlur *= 1/thresMax
                 croppedR = croppedR.astype('float64')
                 croppedR *= thresBlur
                 croppedR = croppedR.astype('uint8')
-                det = cv.equalizeHist(croppedR) 
-                cv.imshow("det", det)          
+                det = cv.equalizeHist(croppedR) #maximize dynamic range
+                # cv.imshow("det", det)          
+
+                #compute spatial derivatives and fft
                 laplacian = cv.Laplacian(det, cv.CV_64F)
                 sobel = cv.Sobel(det, cv.CV_64F, 1, 1)
                 masked = croppedThres * sobel
@@ -362,18 +346,22 @@ class arena:
                     for x in range(cutoff[1], fmask.shape[1] - cutoff[1]+1):
                         fmask[y, x] = 1
                 ff = np.multiply(f, fmask)
+
+                #compute integrated energy (represents roughness)
                 roughness = np.sum(np.abs(ff))
 
                 blocks.append((cx, cy, roughness))
 
-        ic(blocks)
+        # ic(blocks)
 
+        #identified blocks
         blockIden = {
             "b1": None,
             "b2": None,
             "b3": None,
         }
 
+        #see which block are we detecting according to how far they are from the precalibrated location, and what type of block it is
         for block in blocks:
             if math.dist(block[:2], self.B1) < self.blockRange:
                 if block[2] > self.blockRoughnessThres1:
@@ -396,11 +384,10 @@ class arena:
         
         return blockIden
 
-    def identifyNearestBlock(self):
-        pass
+
         
 
-
+    #plot all detected waypoints on a nice map
     def getDiagnosticMap(self):
         self.grabAll()
         self.map = cv.cvtColor(self.path, cv.COLOR_GRAY2BGR)
@@ -419,7 +406,7 @@ class arena:
 
         
 
-
+#this section only for testing
 if __name__ == "__main__":
     map = arena("http://localhost:8081/stream/video.mjpeg")
     # img = map.getDiagnosticMap()
