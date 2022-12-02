@@ -70,7 +70,7 @@
 \quad We made an overall system level diagram as can be seen in \Cref{fig:overall_sys}
 
 \section{Project Management}
-\quad L.W. Pender was selected as the leader of the group. We created a Trello project which has functionalities like a Gantt chart and Kanban boards as our project management systems. We made a rough timeline of the large milestones of the project such as having a fully assembled robot, having the sensors all attached onto the robot and funcitoning, having a working robot and testing, and placed these onto the Trello project. We then made smaller short-term goals for each team to achieve.
+\quad L.W. Pender was selected as the leader of the group. We created a Trello project for our project management tool which has functionalities like a Gantt chart and Kanban boards. We made a rough timeline of the large milestones of the project with dependencies on the gantt chart. From this, smaller, agile tasks were planned and added to seperate cards on each teams individual board. The larger milestones were having an assembled robot, having the sensors fully connected and funcitoning, integrating all the systems and final testing.
     
 \section{Mechanical}
 \quad The mechanical team consists of Pender, L.W. (lwp26) and Hendricks, M.A. (mah237). 
@@ -177,7 +177,7 @@ LED &
   \hline
     \end{tabular}
     \caption{Component List}
-    \label{tab:mount_sens}
+    \label{tab:comp_list}
 \end{table}
 
 \subsubsection{Overall Design}
@@ -197,19 +197,37 @@ LED &
     \end{description}
 \end{enumerate}
 \subsubsection{Schematic and PCB layout}
-\quad The schematic is as follow:
-\includegraphics[width=0.8\textwidth]{assets/Schematic.jpg}
-These were all done soldering in week 3 and ready for test on stripboard. We originally used stripboard to build our circuit as it is faster to prototype and change any designs according to tested results. Functions are all tested fine before installed to the robot.
-As the four line sensors occupied all analog inputs on the arduino, we implemented code in software to make pin 12 capable of  reading analog inputs and have the LDR connected to it.
+\quad The schematic is as follows:
 
-However before the first competition, the board get shorted by the nuts on the robot, casued one of the line sensors not working. This has been the major reason for scoring 20 in the first competition, as the robot lost its ability to navigated back.
-After that test, we decided to change to the Arduino protoboard as most of the design are settled and it is apparently more stable. This is the protoboard design we’ve raised:
-\includegraphics[width=0.8\textwidth]{assets/Proto.jpg}
-\includegraphics[width=0.8\textwidth]{assets/Board.jpg}
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/Schematic.png}
+    \caption{Component Schematic}
+    \label{fig:schematic}
+\end{figure} 
+
+\quad These were all done soldering in week 3 and ready for test on stripboard. We originally used stripboard to build our circuit as it is faster to prototype and change any designs according to tested results. Functions are all tested fine before installed to the robot. As the four line sensors occupied all analog inputs on the arduino, we implemented code in software to make pin 12 capable of  reading analog inputs and have the LDR connected to it.
+
+\quad However before the first competition, the board get shorted by the nuts on the robot, casued one of the line sensors not working. This has been the major reason for scoring 20 in the first competition, as the robot lost its ability to navigated back. After that test, we decided to change to the Arduino protoboard as most of the design are settled and it is apparently more stable. This is the protoboard design we’ve raised:
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/Proto.png}
+    \caption{Board layout}
+    \label{fig:board_layout}
+\end{figure} 
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/Board.png}
+    \caption{Soldered protoboard}
+    \label{fig:final_board}
+\end{figure} 
+
 \subsection{OpenCV}
 \quad Before week 4 we get OpenCV working, and therefore we decided to switch to OpenCV navigation approach. As OpenCV is uncapable of block detection, the detection mechanism has been kept. Line sensors and ultrasonic sensors are no longer required, and the updated component list is as follow:
 
-The only change to the PCB is LDR now connected to A4 to ensure stable performance, as line sensors no longer required. Besides that, while components are mostly removed, the sockets are kept on the protoboard, so no other design has changed.
+\quad The only change to the PCB is LDR now connected to A4 to ensure stable performance, as line sensors no longer required. Besides that, while components are mostly removed, the sockets are kept on the protoboard, so no other design has changed.
 
 \section{Software}
 
