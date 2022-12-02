@@ -69,6 +69,20 @@
 
 \quad We made an overall system level diagram as can be seen in \Cref{fig:overall_sys}
 
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/Overall_sys.jpg}
+    \caption{Overall System Level Diagram}
+    \label{fig:overall_sys}
+\end{figure}
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/arena.png}
+    \caption{Arena layout}
+    \label{fig:arena}
+\end{figure}
+
 \section{Project Management}
 \quad L.W. Pender was selected as the leader of the group. We created a Trello project which has functionalities like a Gantt chart and Kanban boards as our project management systems. We made a rough timeline of the large milestones of the project such as having a fully assembled robot, having the sensors all attached onto the robot and funcitoning, having a working robot and testing, and placed these onto the Trello project. We then made smaller short-term goals for each team to achieve.
     
@@ -131,14 +145,23 @@ The chassis design for the robot was designed to be very modular, we had multipl
 
 \quad The second idea was to have a rack and pinion powering a moving stick to move closer to another stationary stick to grab the block. The problem with this was that the rack and pinion mechanism is less reliable and the block will be gripped to one side of the mechanism and the mass distribution will be shifted.
 
-\quad The idea we settled on was to use a scissor like gripping mechanism as shown in \Cref{fig:grip_mech}. This might have slightly more parts but it is more reliable than the rack and pinion and the center of mass is not affected.
+\quad The idea we settled on was to use a scissor like gripping mechanism. This might have slightly more parts but it is more reliable than the rack and pinion and the center of mass is not affected. This also had the great benefit of only using one servo.
 
 \subsubsection{Assembly}
 
 \quad The assembly of the grabber mechanism required the use of pin joints to allow the parts of the mechanism to rotate and grab the block. We made the pin joints by having bolts separate the pieces with nuts and washers so that the joints will have less friction and will act like a pin joint. Another problem we faced during assembly was that the parts did not mesh together really well because of the difference in heights of the parts and the robot chassis being slightly warped due to some bolts joining the top and bottom plate together. We resolved this by having a long bolt through the top and bottom plate and used nuts fix the distance from the top to the bottom plate near the grabber. This ensured that the grabber gears meshed well together.
 
 \subsection{Cardboard Model and CAD}
-\quad We have made a cardboard model prototype for testing purposes as can be seen in \Cref{fig:cardboard_model}. This was laser cut out of cardboard and assembled using hot glue. The cardboard cut outs were designed first in a Solidworks model of the robot as can be seen in \Cref{fig:isometric}. Our first wooden robot was produced fairly quickly but was determined to be the final robot instead of reproducing another one to allow the other teams to continue testing the robot which was more critical to the project at the time.
+\quad We have made a cardboard model prototype for testing purposes as can be seen in \Cref{fig:cardboard_model}. This was laser cut out of cardboard and assembled using hot glue. Our first wooden robot was produced fairly quickly but was determined to be the final robot instead of reproducing another one to allow the other teams to continue testing the robot which was more critical to the project at the time.
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/assembled_prototype.jpg}
+    \caption{Assembled Prototype}
+    \label{fig:assembled_prototype}
+\end{figure}
+
+The CAD model of the final robot and some drawings can be seen in .
 
 \section{Electrical}
 \quad The electrical teams consists Hor Ye Heng (yhh35) and Yiheng Liu (yl827). 
@@ -198,14 +221,14 @@ LED &
 \end{enumerate}
 \subsubsection{Schematic and PCB layout}
 \quad The schematic is as follow:
-\includegraphics[width=0.8\textwidth]{assets/Schematic.jpg}
+\includegraphics[width=0.8\textwidth]{assets/Schematic.png}
 These were all done soldering in week 3 and ready for test on stripboard. We originally used stripboard to build our circuit as it is faster to prototype and change any designs according to tested results. Functions are all tested fine before installed to the robot.
 As the four line sensors occupied all analog inputs on the arduino, we implemented code in software to make pin 12 capable of  reading analog inputs and have the LDR connected to it.
 
 However before the first competition, the board get shorted by the nuts on the robot, casued one of the line sensors not working. This has been the major reason for scoring 20 in the first competition, as the robot lost its ability to navigated back.
 After that test, we decided to change to the Arduino protoboard as most of the design are settled and it is apparently more stable. This is the protoboard design we’ve raised:
-\includegraphics[width=0.8\textwidth]{assets/Proto.jpg}
-\includegraphics[width=0.8\textwidth]{assets/Board.jpg}
+\includegraphics[width=0.8\textwidth]{assets/Proto.png}
+\includegraphics[width=0.8\textwidth]{assets/Board.png}
 \subsection{OpenCV}
 \quad Before week 4 we get OpenCV working, and therefore we decided to switch to OpenCV navigation approach. As OpenCV is uncapable of block detection, the detection mechanism has been kept. Line sensors and ultrasonic sensors are no longer required, and the updated component list is as follow:
 
@@ -266,51 +289,6 @@ We plan to use UDP packets to stream commands to the Arduino on the robot, which
     \end{description}
 \end{enumerate}
 
-
-\section{Appendix}
-% Please put all of your image documents in the asset folder and place all of your figures here. TQ
-
-\begin{figure}[!h]
-    \centering
-    \includegraphics[width=0.8\textwidth]{assets/Overall_sys.jpg}
-    \caption{Overall System Level Diagram}
-    \label{fig:overall_sys}
-\end{figure}
-
-\begin{figure}[!h]
-    \centering
-    \includegraphics[width=0.8\textwidth]{assets/arena.png}
-    \caption{Arena layout}
-    \label{fig:arena}
-\end{figure}
-
-\begin{figure}[!h]
-    \centering
-    \includegraphics[width=0.8\textwidth]{assets/Gripper_Mechanism.jpg}
-    \caption{Scissor-like Gripper Mechanism}
-    \label{fig:grip_mech}
-\end{figure}
-
-\begin{figure}[!h]
-    \centering
-    \includegraphics[width=0.8\textwidth]{assets/isometric.png}
-    \caption{Current Isometric Solidworks Model}
-    \label{fig:isometric}
-\end{figure}
-
-\begin{figure}[!h]
-    \centering
-    \includegraphics[width=0.8\textwidth]{assets/Cardboard_model.jpg}
-    \caption{Cardboard Model}
-    \label{fig:cardboard_model}
-\end{figure}
-
-\begin{figure}[!h]
-    \centering
-    \includegraphics[width=0.8\textwidth]{assets/assembled_prototype.jpg}
-    \caption{Assembled Prototype}
-    \label{fig:assembled_prototype}
-\end{figure}
 
 
 
