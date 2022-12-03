@@ -6,7 +6,7 @@
 
 \title{Final IDP Report}
 \author{Group M213 ; Team Name: Roomba PLC ;Robot Name: Roomba}
-\date{November 2022}
+\date{3rd December 2022}
 
 % To be confirmed that it requires the setspace package, try with and without.
 \usepackage{setspace}
@@ -84,7 +84,14 @@
 \end{figure}
 
 \section{Project Management}
-\quad L.W. Pender was selected as the leader of the group. We created a Trello project which has functionalities like a Gantt chart and Kanban boards as our project management systems. We made a rough timeline of the large milestones of the project such as having a fully assembled robot, having the sensors all attached onto the robot and funcitoning, having a working robot and testing, and placed these onto the Trello project. We then made smaller short-term goals for each team to achieve.
+\quad L.W. Pender was selected as the leader of the group. We created a Trello project which has functionalities like a Gantt chart and Kanban boards as our project management systems. We made a rough timeline of the large milestones of the project such as having a fully assembled robot, having the sensors all attached onto the robot and funcitoning, having a working robot and testing, and placed these onto the Trello project. We then made smaller short-term goals for each team to achieve. A Gantt chart for the project can be seen in \Cref{fig:gantt}.
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/Gantt.png}
+    \caption{Screenshot of Gantt Chart}
+    \label{fig:gantt}
+\end{figure}
     
 \section{Mechanical}
 \quad The mechanical team consists of Pender, L.W. (lwp26) and Hendricks, M.A. (mah237). 
@@ -261,8 +268,9 @@ Right after the first competition, there was a discussion for the whole team abo
 Considering:
 
 \begin{itemize}
-    \item the actual performance of line-following system in the competition (20 scores), the upper limit of scores can be lower than openCV system due to time-counting for picking up block.
+    \item the actual performance of line-following system in the competition (20 points), the upper limit of scores can be lower than openCV system due to time-counting for picking up block.
     \item our target for IDP is to learn as much as possible, both systems should have equal chance to be tested.
+\end{itemize}
 Therefore, the major decision throughout the IDP sessions is to change from line-following system to openCV system.
 
 \subsection{Analysis of failure}
@@ -312,6 +320,8 @@ We plan to use UDP packets to stream commands to the Arduino on the robot, which
     \end{description}
 \end{enumerate}
 
+\section{Conclusion}
+    We did not manage to achieve our target of 100 points in the competition. The main point of failure was due to the failure of the OpenCV program to detect the robot's position at certain points due to the changed lighting during the competition. Suggested improvements to the development of a robot of this sort would be to make a risk matrix to assess the likely points of failure and perform mitigating actions to prevent them.
 
 
 
