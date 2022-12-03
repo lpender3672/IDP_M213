@@ -231,23 +231,36 @@ LED &
 
 \section{Software}
 
-\quad The software team consists of Yian.W (yw543) and Yuge.Z (yz754). We plan to employ finite state machine to drive the overall flow, and identified four main procedures that we would work on for the project, namely line following, distance tracking(below tunnel), block detection and pick-up/lay-off as seen below. 
+\quad The software team consists of Yian.W (yw543) and Yuge.Z (yz754). The team worked on two separate systems of navigation at the same time, namely line-following and OpenCV (explored by Hor Ye Heng (yhh35)). The aim is that any one of the system would enable the robot to complete the competition independently. While OpenCV is used in final competition, the elaboration of the line-following system is still included for completeness of the report. 
+
+\subsection{Overall design of line-following system}
+The line-following system includes functions that allow for navigation of robots following the white line as well as under the tunnel, block vicinity detection, block density detection and block pick-up/drop-off, using 4 line sensors, 2 ultrasonic sensors and 1 distance sensor.
+
 \begin{figure}[!h]
     \centering
-    \includegraphics[width=0.8\textwidth]{assets/software_overview.png}
-    \caption{Software Overview}
-    \label{fig:software_overview}
-\end{figure} 
+    \includegraphics[width=0.8\textwidth]{assets/line_following system.png}
+    \caption{line-following system}
+    \label{fig:line-following system}
+\end{figure}
 
-\subsection{Exploration and navigation alogrithms}
-\quad quad Our group decided on using the line-following method to navigate the robot. By placing 3 OPB sensors, we could obtain different analog reading values corresponding to the color of the surfaces under various scenarios. Specifically with regards to interface to electronics, high voltage readings correspond to black surfaces, and lower voltage readings correspond to that of white line, allowing deviation from the line to be detected. We could change outputs as that of the speed of each motor, such that it would make necessary adjustments/turns under different scenarios. 
+\begin{itemize}
+    \item 4 line sensors at the bottom of robot would give different voltage values for black and white floor, and basic line-following logic is designed based on the threshold values we set to determine whether a particular sensor is on top of the white line.
+    \item 2 ultrasonic sensors are installed at the front and on the left hand side of the robot. The front one gives different values for low/high density block, and the side one detects the distance from the wall under the tunnel.
+    \item The distance sensor would give a different value from normal scenario when it is in close vicinity of the block.
+\end{itemize}
 
-\quad In addition, we plan to use inputs from an ultrasonic sensor to determine the distance from one side of the wall, and maintain navigation process when there is no line to follow beneath the tunnel. 
+The main logic for the system is to follow the white line with correction. When the robot is navigating through the tunnel with no white line, the movement is corrected according to distance from the wall based on reading of the side ultrasonic sensor.
+When the front distance sensor detects the block, the robot would be stopped. Detection of density is activated followed by pick-up of the block, allowing the robot to return to the corresponding square for drop-off. 
 
-\subsection{Block collection algorithms}
-\quad Block collection could be broken down into two main stages: detection of the density of the block and pick-up/lay-off procedure. The block detection stage will be initiated when a distance sensor placed at the front read a value beneath a particular threshold, e.g. 5cm. To determine the density of the block, the ultrasonic sensor is used to produce analog readings that correspond to high/low density block. The outputs would be the ledstate of pins corresponding to the red/green LED respectively. Upon flashing signals, the pick-up procedure would be initiated and a PWM signal would be sent as an output to the Servo to clamp the block. The lay-off procedure is similar. 
+\subsection{Test and trade-off in design}
+The line-following system works successfully overall, allowing pick-up of block at the cross junction, drop-off of the block at the corresponding box and finally smooth return to home box during testing. However, the front ultrasonic sensor does not give consistent readings for high-density blocks, making distinction between different density blocks unreliable. A possible replacement is to shine light on the block and use LDR to determine the amount of light passing through the block, which was then fit onto the robot in the final version alongside openCV system. In addition, due to the positions of the line sensors, we had to program the robot not to go over the ramp. Instead, it would traverse through the tunnel back and forth. These limit the number of points the line-following systme could have scored. 
 
-% Yuge and Steve please fill in your work here %
+\subsection{Team management and major decisions}
+Overall, there is close cooperation between the software, electrical and mechanical teams. The software team could come up with ideas to resolve particular issues, and request for electrical and mechanical additions on the robot to help fulfill the demands. Two individual systems were both well-developed on its own, allowing us to choose the optimal of the two. The entire team was engaged in the discussion to determine the final system to adopt after the first competition, and we were decisive based on the comparative performances in spite of the sunk costs.
+The team eventually decided to use openCV over line-following based on the following considerations: 
+1. To allow the robot to traverse the ramp, potentially breaking changes would need to be made to the location of the line sensors
+2. The electrical connection to the line sensors has been rather unreliable, resulting in a total of 20 marks scored in the first competition rather than 50 as expected.
+
 \subsection{OpenCV}
 \subsubsection{Overall Plan}
 This branch of the project is currently in the nightly stage, i.e. we are only exploring the feasibility of using computer vision, powered by the OpenCV library, to carry out path planning around the arena and therefore offloading the navigation of the robot entirely to a PC.
