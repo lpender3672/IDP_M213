@@ -6,7 +6,7 @@
 
 \title{Final IDP Report}
 \author{Group M213 ; Team Name: Roomba PLC ;Robot Name: Roomba}
-\date{November 2022}
+\date{3rd December 2022}
 
 % To be confirmed that it requires the setspace package, try with and without.
 \usepackage{setspace}
@@ -76,7 +76,29 @@
     \label{fig:arena}
 \end{figure}
 
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/Overall_sys.jpg}
+    \caption{Overall System Level Diagram}
+    \label{fig:overall_sys}
+\end{figure}
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/arena.png}
+    \caption{Arena layout}
+    \label{fig:arena}
+\end{figure}
+
 \section{Project Management}
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/Gantt.png}
+    \caption{Screenshot of Gantt Chart}
+    \label{fig:gantt}
+\end{figure}
+
 \quad L.W. Pender was selected as the leader of the group. We created a Trello project for our project management tool which has functionalities like a Gantt chart and Kanban boards. We made a rough timeline of the large milestones of the project with dependencies on the gantt chart. From this, smaller, agile tasks were planned and added to seperate cards on each teams individual board. The larger milestones were having an assembled robot, having the sensors fully connected and funcitoning, integrating all the systems and final testing.
     
 \section{Mechanical}
@@ -138,14 +160,23 @@ The chassis design for the robot was designed to be very modular, we had multipl
 
 \quad The second idea was to have a rack and pinion powering a moving stick to move closer to another stationary stick to grab the block. The problem with this was that the rack and pinion mechanism is less reliable and the block will be gripped to one side of the mechanism and the mass distribution will be shifted.
 
-\quad The idea we settled on was to use a scissor like gripping mechanism as shown in \Cref{fig:grip_mech}. This might have slightly more parts but it is more reliable than the rack and pinion and the center of mass is not affected.
+\quad The idea we settled on was to use a scissor like gripping mechanism. This might have slightly more parts but it is more reliable than the rack and pinion and the center of mass is not affected. This also had the great benefit of only using one servo.
 
 \subsubsection{Assembly}
 
 \quad The assembly of the grabber mechanism required the use of pin joints to allow the parts of the mechanism to rotate and grab the block. We made the pin joints by having bolts separate the pieces with nuts and washers so that the joints will have less friction and will act like a pin joint. Another problem we faced during assembly was that the parts did not mesh together really well because of the difference in heights of the parts and the robot chassis being slightly warped due to some bolts joining the top and bottom plate together. We resolved this by having a long bolt through the top and bottom plate and used nuts fix the distance from the top to the bottom plate near the grabber. This ensured that the grabber gears meshed well together.
 
 \subsection{Cardboard Model and CAD}
-\quad We have made a cardboard model prototype for testing purposes as can be seen in \Cref{fig:cardboard_model}. This was laser cut out of cardboard and assembled using hot glue. The cardboard cut outs were designed first in a Solidworks model of the robot as can be seen in \Cref{fig:isometric}. Our first wooden robot was produced fairly quickly but was determined to be the final robot instead of reproducing another one to allow the other teams to continue testing the robot which was more critical to the project at the time.
+\quad We have made a cardboard model prototype for testing purposes as can be seen in \Cref{fig:cardboard_model}. This was laser cut out of cardboard and assembled using hot glue. Our first wooden robot was produced fairly quickly but was determined to be the final robot instead of reproducing another one to allow the other teams to continue testing the robot which was more critical to the project at the time.
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/assembled_prototype.jpg}
+    \caption{Assembled Prototype}
+    \label{fig:assembled_prototype}
+\end{figure}
+
+The CAD model of the final robot and some drawings can be seen in .
 
 \section{Electrical}
 \quad The electrical teams consists Hor Ye Heng (yhh35) and Yiheng Liu (yl827). 
@@ -238,23 +269,47 @@ LED &
 
 \section{Software}
 
-\quad The software team consists of Yian.W (yw543) and Yuge.Z (yz754). We plan to employ finite state machine to drive the overall flow, and identified four main procedures that we would work on for the project, namely line following, distance tracking(below tunnel), block detection and pick-up/lay-off as seen below. 
-\begin{figure}[!h]
-    \centering
-    \includegraphics[width=0.8\textwidth]{assets/software_overview.png}
-    \caption{Software Overview}
-    \label{fig:software_overview}
-\end{figure} 
+\quad The software team consists of Yian.W (yw543) and Yuge.Z (yz754). For software, there are two separate systems proceeding at the same time: Line-following and openCV (explored by Hor Ye Heng (yhh35)). The aim is that each of them enables the robot to complete the competition independently, and the final choice on which system to use depends on the performance in the tests.
+\subsection{Overall design}
+We focus on line-following system, which also includes functions of block detection, density detection and block pick up/drop, using 4 line sensors, 2 distance sensors and 1 ultrasonic sensor.
+\begin{itemize}
+    \item 4 line sensor at the bottom of robot would give voltage values for black and white floor. We set up threshould values for low/high states, and then design the basic line-following logic.
+    \item 2 distance sensors are installed in front and right hand side of the robot separately. The front one detects the block, and the side one detects the wall in tunnel.
+    \item The ultrasonic sensor in front of the robot detects the density of the block.
+\end{itemize}
 
-\subsection{Exploration and navigation alogrithms}
-\quad quad Our group decided on using the line-following method to navigate the robot. By placing 3 OPB sensors, we could obtain different analog reading values corresponding to the color of the surfaces under various scenarios. Specifically with regards to interface to electronics, high voltage readings correspond to black surfaces, and lower voltage readings correspond to that of white line, allowing deviation from the line to be detected. We could change outputs as that of the speed of each motor, such that it would make necessary adjustments/turns under different scenarios. 
+The main logic (which involves the detection from sensors) for the system is: Follow the white line with correction. If inside tunnel (when all line sensors give low reading), correct the movement with side distance sensor's reading.
+If the front distance sensor detects the block, stop the robot, detect the density and return to corresponding square. Then go home. We plan not to go over the ramp due to some mechanic issue, and all of these if conditions are ensured to be triggered correctly with time counted.
 
-\quad In addition, we plan to use inputs from an ultrasonic sensor to determine the distance from one side of the wall, and maintain navigation process when there is no line to follow beneath the tunnel. 
+\subsection{Test and trade-off in design}
+The tests show that the line-following function works perfectly. However, the front ultrasonic and distance sensors do not work ideally. For ultrasonic sensor, it does not give reliable reading for block density. While for distance sensor, it is the problem of position it is installed.
+The distance sensor is installed towards the floor rather than towards the front, which sometimes accidentally trigger the "block detected" function.
 
-\subsection{Block collection algorithms}
-\quad Block collection could be broken down into two main stages: detection of the density of the block and pick-up/lay-off procedure. The block detection stage will be initiated when a distance sensor placed at the front read a value beneath a particular threshold, e.g. 5cm. To determine the density of the block, the ultrasonic sensor is used to produce analog readings that correspond to high/low density block. The outputs would be the ledstate of pins corresponding to the red/green LED respectively. Upon flashing signals, the pick-up procedure would be initiated and a PWM signal would be sent as an output to the Servo to clamp the block. The lay-off procedure is similar. 
+The problems of sensors cannot be solved effectively and as a result, we can only count the time to stop the robot, trigger "pick up" function and then return, sacrificing the maximum number of blocks got and aim for only one block.
 
-% Yuge and Steve please fill in your work here %
+\subsection{Team management and major decisions}
+The team management can be efficient overall. There is a strong cooperation among software, electrical and mechanical teams. The structure of team management is that software team express demands, and then electrical and mechanical teams help fulfill the demands (although there are some trade-off). Especially, the task division in the whole team is clear, which supports two individual systems to be developed at the same time, and both are developed to the extent that allows us to get some scores in the competition.
+
+Right after the first competition, there was a discussion for the whole team about deciding which system to be used finally.
+Considering:
+
+\begin{itemize}
+    \item the actual performance of line-following system in the competition (20 points), the upper limit of scores can be lower than openCV system due to time-counting for picking up block.
+    \item our target for IDP is to learn as much as possible, both systems should have equal chance to be tested.
+\end{itemize}
+Therefore, the major decision throughout the IDP sessions is to change from line-following system to openCV system.
+
+\subsection{Analysis of failure}
+In the tests, there are many occasions that we fail to debug when the codes does not work well.
+For line-following system, there are nearly 800 lines of coding, which does not include debugging module.
+Besides, a minor problem is that the coding files have not been managed in order.
+The solution for debugging actually requires more experience and we need to learn more systemmatically. While for the files management, simply name them in detail and try to save before editing anything new.
+
+
+
+
+
+
 \subsection{OpenCV}
 \subsubsection{Overall Plan}
 This branch of the project is currently in the nightly stage, i.e. we are only exploring the feasibility of using computer vision, powered by the OpenCV library, to carry out path planning around the arena and therefore offloading the navigation of the robot entirely to a PC.
