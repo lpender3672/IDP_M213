@@ -4,6 +4,15 @@
 \usepackage{cleveref}
 \usepackage{enumitem}
 
+\usepackage{titlesec}
+
+\setcounter{secnumdepth}{4}
+
+\titleformat{\paragraph}
+{\normalfont\normalsize\bfseries}{\theparagraph}{1em}{}
+\titlespacing*{\paragraph}
+{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+
 \title{Final IDP Report}
 \author{Group M213 ; Team Name: Roomba PLC ;Robot Name: Roomba}
 \date{3rd December 2022}
@@ -273,52 +282,95 @@ Considering:
 \end{itemize}
 Therefore, the major decision throughout the IDP sessions is to change from line-following system to openCV system.
 
-\subsection{Analysis of failure}
-In the tests, there are many occasions that we fail to debug when the codes does not work well.
-For line-following system, there are nearly 800 lines of coding, which does not include debugging module.
-Besides, a minor problem is that the coding files have not been managed in order.
-The solution for debugging actually requires more experience and we need to learn more systemmatically. While for the files management, simply name them in detail and try to save before editing anything new.
-
-
-
-
-
 
 \subsection{OpenCV}
-\subsubsection{Overall Plan}
-This branch of the project is currently in the nightly stage, i.e. we are only exploring the feasibility of using computer vision, powered by the OpenCV library, to carry out path planning around the arena and therefore offloading the navigation of the robot entirely to a PC.
+\subsubsection{Decision to abondon line following}
+We made the decision to attempt to use OpenCV for the following reasons:
 
-Should this be successful, the overall operation would involve streaming the live video feed from the overhead webcams into a Python script, which would carry out the following processing steps:
-\begin{enumerate}
-    \item World Mapping 
-    \begin{description}[leftmargin=-0.2in]
-        \item The script would detect all the features within the field of view such as the white path lines, the red and green squares, and the lime colored obstacle. A map of the arena would be constructed from the location information of these features, and cached into memory.
-    \end{description}
-    \item Navigate to Payload
-    \begin{description}[leftmargin=-0.2in]
-        \item[] In this state, the script waits for the presence of the target payload (the foam blocks). Once a foam block is detected, a pathfinding algorithm would be run to establish a path from the current robot position to the position of the foam blocks. Commands will then be sent to the robot to move according to the aforementioned path.
-    \end{description}
-    \item Navigate to Goal Area
-    \begin{description}[leftmargin=-0.2in]
-        \item[] In a similar manner, once the foam block has been picked up and it's category determined, the path planning algorithm infers a path from the current robot position to the goal area. Commands will then be sent to the robot to carry out the required movements.
-    \end{description}
-\end{enumerate}
+\begin{itemize}
+    \item To allow the robot to traverse the ramp, significant, potentially breaking changes would need to be made to the location of the line sensors
+    \item The electrical connection to the line sensors have been rather unreliable
+\end{itemize}
 
-We plan to use UDP packets to stream commands to the Arduino on the robot, which would be configured to be an access point so that we have a dedicated data pipe that will not be affected by inconsistencies of the network infrastructure in the department. However, should the handling of the UDP packets become too much of a challenge, we could fall back to sending HTTP requests to command the Arduino - an approach that has been well documented by others within the maker community.
+\subsubsection{OpenCV Control Architechture}
+The main control loop brings together the following 2 modules to complete the tasks set by CUED:
 
-\subsubsection{Potential Issues and Ways to Mitigate Them}
-\begin{enumerate}
-    \item Latency
-    \begin{description}[leftmargin=-0.2in]
-        \item[] We noticed that OpenCV buffers frames as they come in over the MJPEG stream, and therefore, with our current naive implementation, the speed at which the processing loop runs determines how much the current frame being processed lags behind real time.
-        \item[] This should be an easy fix, a thread could be spawned to clear out the frame buffer such that the current frame being read by the processing loop is never stale.
-    \end{description}
-    \item Network Dropout
-    \begin{description}[leftmargin=-0.2in]
-        \item[] We were informed multiple times by various parties that network stability was a huge issue for teams in the past.
-        \item[] In the event that issues with 802.11b/g/n network congestion become significant, the ESP32 on board the Arduino also has native support for Bluetooth Low Energy (BLE), which implements frequency hopping specifically to combat congestion, so we would switch over to using BLE for communication between the PC and the Arduino.
-    \end{description}
-\end{enumerate}
+\paragraph{Remote Control over Wifi}
+
+A http request parser was implemented on the Arduino onboard the robot, which allows for a master-slave style communication protocol. 
+
+The Arduino is connected to the main control PC via the PC's mobile hotspot. The PC can then send commands over to the Arduino, each consisting of an instruction string and an optional parameter string. For example, the robot can be commanded to \textbf{move forward} for \textit{1000ms}. After each command, the Arduino sends back a HTTP 200 OK response, with a reading of the LDR value, which enables the detection of the block type.
+
+\paragraph{Video Acquisition and Processing}
+The video acquisition module takes care of tasks like acquiring real time video from the overhead camera, correcting for distortion and locating the robot.
+
+The `arena` class located within this module also contains calibrated waypoints for navigation across the arena, which include all the positions where blocks are to be collected or dropped, as well as tunnel and ramp endpoints.
+
+\paragraph{Control Loop Behavior}
+At the beginning of the routine, a calibration is performed where the distance and anglular displacement per unit time is recorded, and used for all subsequent movement commands.
+
+Then, the robot simply navigates to predetermined waypoints and performs the requisite actions to complete the tasks set for us.
+
+\paragraph{Scheme to Improve Reliability}
+
+Due to the script losing track of the marker intermittently when the robot is at the peripheral areas of the camera, and by extension the very edges of the arena, we devised the following scheme to attempt to regain a lock on the AruCo marker:
+
+When the main control script requests a reading of the current position of the robot, if the target locating script does not manage to find the target in the current frame, it will try again by acquiring a new frame and running all the detection routines on the new frames, for a maximum of `max-retries` times. This helps to solve issues related to missing the marker due to noise.
+
+Should the script still fail to locate the marker, the robot performs a manoevure to attempt to go to an area of the arena where the target has a better chance of being detected. This is achieved in the final script by reversing the robot for 1000 ms and commanding it to go forward for 2000 ms. During our testing, it was found that this reverse before moving forward scheme was particularly effective if the robot gets stuck inside the tunnel.
+
+\subsubsection{Key Decisions in OpenCV Architechture}
+
+\paragraph{Waypoint Based Navigation}
+
+Initially, a complete set of functions to automatically detect features within the arena and intelligently pathfind around was developed. Despite having a working solution, we chose to abandon it in favour of a simpler, pre-recorded waypoint based navigation solution due to difficulties testing the smart feature detection based solution as it requires the arena to be completely clear of unexpected objects, and it was impossible to clear the arena as other teams also had to use it.
+
+\paragraph{Time Based Control}
+
+As the decision to use OpenCV was made rather late, it was not possible to realise the initial idea of having optical encoders on the wheels for absolute position sensing. This made the task of accurately navigating the robot extremely challenging due to the inconsistent performance of the DC brushed motors being controlled by PWM in an open loop manner. However, it was the only option given the time constrains.
+
+\paragraph{Use of AruCo Markers}
+
+Initially, the plan was to use a round target to serve as the main detection target, as a large round object would be very easy to detect since it will be a unique feature within the field of view of the camera. However, upon testing, the size of target needed exceeded our expectations, and 3D printing a target large enough would not have been possible within the time we had. So, the decision was made to use AruCo markers which had the added benefit of also providing information of the heading of the robot.
+
+\paragraph{Only Attempting one lap}
+Given the constrains of having to slow down the motors to reduce errors caused by inconsistent motor drive strength, we had to reduce the motor speed to about $80\%$ of maximum, which did not allow us to comfortably navigate around multiple times within 5 mins. Hence, it was decided that we would prioritise getting back to the home point to confidently gain the 20 points associated.
+
+\subsubsection{Failure Analysis}
+Unfortunately, despite all the measures described above attempting to increase the reliablilty of the system, it failed to complete a single lap around the arena, which only allowed us to score 10 points out of the (conservatively estimated) 70 points.
+
+The main cause of failure was that the video processing script lost track of the marker, and all of the logic implemented to attempt a recovery failed to do so.
+
+It was particularly perplexing because when the failure occured, the robot was in an area of the arena that had extremely reliable marker detection in all of the prior testing (usually, the marker would be lost near the tunnel edge, but this time the failure occured at the ramp end, which was well within the field of view).
+
+Without extensive testing and validation, it would be hard to conclude what exactly caused this unrecoverable failure. However, by observing the recorded video feed of past successful attempts, and the live video feed as the competition.
+
+\paragraph{Change in Lighting}
+We did not expect this to be an issue, as the entire idea of using the monochromatic AruCo marker was that it would be robust against changes in lighting. However, upon scrutiny, the reflections on the tape residue on the arena was different in the recorded and live footage. Considering the marker was printed with a laser jet printer which produces black areas which are glossy, it is possible that somehow light from unexpected sources was reflecting off the marker, causing too much loss of contrast.
+
+The fix for this would be trivial: print the pattern using an inkjet printer, which produces matte prints
+
+\paragraph{Recovery Manoevure was Ineffective}
+
+The recovery manouvre described was great in getting the robot unstuck from under the tunnel, and sometimes effective in enabling the script to regain a lock on the marker. However, in hindsight, the occasions where recovery was achieved when the robot was not stuck were probably flukes, since in the case of the competition, it so happened that the manoeuvre caused the robot to move *away* from the center where detection was most reliable.
+
+A much better way to implement such a recovery measure would be to keep a log of the past commands sent to the robot, particularly those telling it to translate, and send the scaled down reverse of those commands, essentially partially undo-ing the past command that caused the robot to veer out of the zone where detection can be done successfully.
+
+\paragraph{Imbalance in Left and Right Wheels}
+This was a known issue since the start of development, and a mitigation was attempted by manually tuning the power sent to each motor, the calibration procedure at the start of the routine, and separating translation and rotation commands (because wheel speed imbalances primarily cause unexpected rotation). However, that still proved to be insufficient.
+
+The best and most straightforward way to solve this problem would be to implement optical encoders on the wheel, as another group did, and as planned for ourselves. This would have the added benefit of increased speed and accuracy, since the movement of the robot would be precisely known, and the slow calibration and on-the-fly heading correction can both be eliminated.
+
+\paragraph{Poor Choice of Pattern}
+Looking at another group which managed good results with computer vision, we suspect that the particular pattern index we chose, and thus the generated pattern, was too complex.
+
+Scrutinising the image from the camera revealed that at the periphery of the field-of-view, due to *comatic aberation*, the square cells of the pattern were no longer square, and there was significant spillover of the white areas into the black areas. We suspect that this was the most direct reason the detection was unreliable at the edges of the arena.
+
+This is significant since the marker identification function implemented by the OpenCV library rejects markers that have a certain percentage pixels within cells (squares) which are the wrong colour.
+
+The fix for this would be to choose a marker which is more blob-like, i.e. a marker that contains a large contiguous shape, as the other group had, would probably be more tolerant in terms of this failure mode, than the one we had, which was significantly more checkerboard-like.
+
+Ultimately, these are just educated guesses at why the robot failed the way it did. Despite that, these speculations should serve as excellent jumping off points for any subsequent debugging efforts.
 
 \section{Conclusion}
     \quad We did not manage to achieve our target of 100 points in the competition. The main point of failure was due to the failure of the OpenCV program to detect the robot's position at certain points due to the changed lighting during the competition. Suggested improvements to the development of a robot of this sort would be to make a risk matrix to assess the likely points of failure and perform mitigating actions to prevent them.
