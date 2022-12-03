@@ -252,9 +252,9 @@ The only change to the PCB is LDR now connected to A4 to ensure stable performan
 
 \section{Software}
 
-\quad The software team consists of Yian.W (yw543) and Yuge.Z (yz754). For software, there are two separate systems proceeding at the same time: Line-following and openCV (explored by Hor Ye Heng (yhh35)). The aim is that each of them enables the robot to complete the competition independently, and the final choice on which system to use depends on the performance in the tests.
-\subsection{Overall design}
-We focus on line-following system, which also includes functions of block detection, density detection and block pick up/drop, using 4 line sensors, 2 distance sensors and 1 ultrasonic sensor.
+\quad The software team consists of Yian.W (yw543) and Yuge.Z (yz754). For software, there are two separate systems proceeding at the same time: Line-following and OpenCV (explored by Ye Heng Hor (yhh35)). Th initial intention was to have separate systems that could either work in conjunction with each other for redundancy, or to pick whichever produces the more complete/stable end result.
+\subsection{Line Following design}
+The line following design includes the following:
 \begin{itemize}
     \item 4 line sensor at the bottom of robot would give voltage values for black and white floor. We set up threshould values for low/high states, and then design the basic line-following logic.
     \item 2 distance sensors are installed in front and right hand side of the robot separately. The front one detects the block, and the side one detects the wall in tunnel.
@@ -264,24 +264,11 @@ We focus on line-following system, which also includes functions of block detect
 The main logic (which involves the detection from sensors) for the system is: Follow the white line with correction. If inside tunnel (when all line sensors give low reading), correct the movement with side distance sensor's reading.
 If the front distance sensor detects the block, stop the robot, detect the density and return to corresponding square. Then go home. We plan not to go over the ramp due to some mechanic issue, and all of these if conditions are ensured to be triggered correctly with time counted.
 
-\subsection{Test and trade-off in design}
+\subsubsection{Test and trade-off in design}
 The tests show that the line-following function works perfectly. However, the front ultrasonic and distance sensors do not work ideally. For ultrasonic sensor, it does not give reliable reading for block density. While for distance sensor, it is the problem of position it is installed.
 The distance sensor is installed towards the floor rather than towards the front, which sometimes accidentally trigger the "block detected" function.
 
 The problems of sensors cannot be solved effectively and as a result, we can only count the time to stop the robot, trigger "pick up" function and then return, sacrificing the maximum number of blocks got and aim for only one block.
-
-\subsection{Team management and major decisions}
-The team management can be efficient overall. There is a strong cooperation among software, electrical and mechanical teams. The structure of team management is that software team express demands, and then electrical and mechanical teams help fulfill the demands (although there are some trade-off). Especially, the task division in the whole team is clear, which supports two individual systems to be developed at the same time, and both are developed to the extent that allows us to get some scores in the competition.
-
-Right after the first competition, there was a discussion for the whole team about deciding which system to be used finally.
-Considering:
-
-\begin{itemize}
-    \item the actual performance of line-following system in the competition (20 points), the upper limit of scores can be lower than openCV system due to time-counting for picking up block.
-    \item our target for IDP is to learn as much as possible, both systems should have equal chance to be tested.
-\end{itemize}
-Therefore, the major decision throughout the IDP sessions is to change from line-following system to openCV system.
-
 
 \subsection{OpenCV}
 \subsubsection{Decision to abondon line following}
@@ -289,7 +276,7 @@ We made the decision to attempt to use OpenCV for the following reasons:
 
 \begin{itemize}
     \item To allow the robot to traverse the ramp, significant, potentially breaking changes would need to be made to the location of the line sensors
-    \item The electrical connection to the line sensors have been rather unreliable
+    \item The electrical connection to the line sensors have been rather unreliable.
 \end{itemize}
 
 \subsubsection{OpenCV Control Architechture}
