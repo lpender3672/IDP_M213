@@ -165,10 +165,17 @@ The chassis design for the robot was designed to be very modular, we had multipl
 \subsection{Cardboard Model and CAD}
 \quad We have made a cardboard model prototype for testing purposes. This was laser cut out of cardboard and assembled using hot glue. Our first wooden robot was produced fairly quickly but was determined to be the final robot instead of reproducing another one to allow the other teams to continue testing the robot which was more critical to the project at the time.
 
-The CAD model of the final robot and some drawings can be seen in .
+The CAD model of the final robot and some drawings can be seen in \Cref{fig:cadndraw}.
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/CAD_ndrawing.jpg}
+    \caption{CAD and Drawings}
+    \label{fig:cadndraw}
+\end{figure}
 
 \section{Electrical}
-\quad The electrical teams consists Hor Ye Heng (yhh35) and Yiheng Liu (yl827). 
+\quad The electrical teams consists Ye Heng Hor (yhh35) and Yiheng Liu (yl827)
 
 The electrical design went through significant changes throughout the development lifecycle of the project, because we decided to transition to computer vision for navigation after the first competition, which greatly simplified the electronics.
 
@@ -176,7 +183,7 @@ For completeness, a brief overview of everything implemented, regardless of whet
 
 \subsection{Line Following}
 \subsubsection{Component List}
-The line following robot contains the following components, and their functions are listed below:
+The line following robot contains the following components, and their functions are shown in \Cref{tab:elec_comp}
 
 \begin{table}[!h]
     \centering
@@ -188,7 +195,7 @@ Component &
    \\
    \hline
 Line Sensor (OPB704) &
-  Changes resistance according to the infrared reflected by the surface &
+  Provides a voltage readback representing the infrared reflectance of the surface below. &
   Connect in series with resistors to give a feedback voltage to the Arduino according to surface detected
    \\
    \hline
@@ -198,17 +205,17 @@ Connected to PWM port of Arduino to send pulses  Time the difference between pul
    \\
    \hline
 Light Dependent Resistor &
-  Changes resistance according to lighting condition &
+  Changes resistance according to amount of incident light, which changes with block density &
   Connect in series with resistors   to give a voltage to Arduino according to light shine (reflection from block) 
    \\
    \hline
 LED &
-  Lights up &
+  Indicates robot state &
 4 white LEDs connected in series with 100ohm resistor to shine up block Amber/Green/Red used to indicate   working state\\
   \hline
     \end{tabular}
     \caption{Component List}
-    \label{tab:mount_sens}
+    \label{tab:elec_comp}
 \end{table}
 
 \subsubsection{Schematic and PCB layout}
@@ -221,10 +228,11 @@ LED &
     \label{fig:sche}
 \end{figure}
 These were all done soldering in week 3 and ready for test on stripboard. We originally used stripboard to build our circuit as it is faster to prototype and change any designs according to tested results. Functions are all tested fine before installed to the robot.
-As the four line sensors occupied all analog inputs on the arduino, we implemented code in software to make pin 12 capable of  reading analog inputs and have the LDR connected to it.
+As the four line sensors occupied all analog inputs on the arduino, we implemented code in software to make pin 12 capable of reading analog inputs and have the LDR connected to it.
 
-However before the first competition, the board get shorted by the nuts on the robot, casued one of the line sensors not working. This has been the major reason for scoring 20 in the first competition, as the robot lost its ability to navigated back.
-After that test, we decided to change to the Arduino protoboard as most of the design are settled and it is apparently more stable. This is the protoboard design we’ve raised:
+However, it became apparent on the morning of the first competition that the exposed pads on the board were shorted by exposed nuts on the robot frame, causing one of the line sensors to completely malfunction, which caused the robot to only be able to score 20 points, since we could not navigate back to the starting half of the arena.
+
+We made the decision to use the Arduino shield boards, as they would completely eliminate shorting of component pads by coming into contact with random metal surfaces on the robot. This really helped to ensure that the robot's performance was robust and reliable.
 \begin{figure}[!h]
     \centering
     \includegraphics[width=0.8\textwidth]{assets/Proto.png}
@@ -237,10 +245,10 @@ After that test, we decided to change to the Arduino protoboard as most of the d
     \caption{Completed Board}
     \label{fig:cbldiag}
 \end{figure}
-\subsection{OpenCV}
-\quad Before week 4 we get OpenCV working, and therefore we decided to switch to OpenCV navigation approach. As OpenCV is uncapable of block detection, the detection mechanism has been kept. Line sensors and ultrasonic sensors are no longer required, and the updated component list is as follow:
 
-The only change to the PCB is LDR now connected to A4 to ensure stable performance, as line sensors no longer required. Besides that, while components are mostly removed, the sockets are kept on the protoboard, so no other design has changed.
+\quad As we made the decision to make the change to OpenCV, most of the sensors were no longer needed. Only the LDR, which is used for detecting block density, remained.
+
+Thus, the only change to the PCB is LDR now connected to A3 to ensure stable performance, as line sensors are no longer required. The rest of the connectors are left unpopulated.
 
 \section{Software}
 
