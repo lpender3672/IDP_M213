@@ -170,7 +170,10 @@ The CAD model of the final robot and some drawings can be seen in .
 \section{Electrical}
 \quad The electrical teams consists Hor Ye Heng (yhh35) and Yiheng Liu (yl827). 
 
-As we conducted two designs (Line following and OpenCV) in parallel, they will be introduced separately. However, as OpenCV based navigation requires mostly the same and less sensors, we did no more than taking off sensors and small tweaks to the PCB to ensure the robot more stable.
+The electrical design went through significant changes throughout the development lifecycle of the project, because we decided to transition to computer vision for navigation after the first competition, which greatly simplified the electronics.
+
+For completeness, a brief overview of everything implemented, regardless of whether or not they were used in the final implementation, is included below.
+
 \subsection{Line Following}
 \subsubsection{Component List}
 The line following robot contains the following components, and their functions are listed below:
@@ -208,22 +211,6 @@ LED &
     \label{tab:mount_sens}
 \end{table}
 
-\subsubsection{Overall Design}
-\quad The tasks we are attempting to achieve are:
-\begin{enumerate}
-    \item Line sensing
-    \begin{description}[leftmargin=-0.2in]
-        \item[] For line sensing, we are using three line sensor OPB704 attached on the bottom of the vehicle to detect the lines. It returns different voltage depend on the reflection so able to detect while line and black surface.
-    \end{description}
-    \item Block detecting
-    \begin{description}[leftmargin=-0.2in]
-        \item[] We are using an LDR in series with a resistor to detect the light passing trough the block. We measure the voltage change across the LDR to determine which block it is.
-    \end{description}
-    \item Channel Guiding
-    \begin{description}[leftmargin=-0.2in]
-        \item[] A ultrasonic sensor will be used in the channel to keep the distance with the wall of the channel constant.
-    \end{description}
-\end{enumerate}
 \subsubsection{Schematic and PCB layout}
 \quad The schematic is as follow:
 
