@@ -3,6 +3,8 @@
 .vscode/*
 *.vsix
 
+python/*
+
 # remove latex clutter
 *.aux
 *.fdb_latexmk
@@ -11,3 +13,7 @@
 *.out
 *.synctex.gz
 *.pdf
+*.zip
+*.pyc
+!OpenCV IDP Final Report and Failure Analysis.pdf
+!IDP Group M213 Final Software Docs.pdf
