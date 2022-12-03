@@ -63,11 +63,18 @@
     \item 1st Competition only manual demonstration of block identification (block may be brought up to stationary robot by hand to demonstrate correct detection reliably) +10
 \end{itemize}
 
-\quad The arena layout can be seen in Figure \Cref{fig:arena}. The robot must be able to traverse the ramp and tunnel, detect and deliver the blocks to the correct area. By traversing the ramp first before picking up the block, the robot can just push the block on the floor without lifting it which is far easier.
+\quad The arena layout can be seen in \Cref{fig:arena}. The robot must be able to traverse the ramp and tunnel, detect and deliver the blocks to the correct area. By traversing the ramp first before picking up the block, the robot can just push the block on the floor without lifting it which is far easier.
 
 \quad To meet these criteria in the small timeline given our group was organised into mechanical, electrical and software teams. We also used a variety of tools to help us with our project management, design and collaberation.
 
-\quad We made an overall system level diagram as can be seen in \Cref{fig:overall_sys}
+\quad We made an initial overall system level diagram as can be seen in \Cref{fig:overall_sys} however as the project progressed and strides were made in OpenCV and the mechanical design, we made an updated system level diagram as can be seen in.
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/arena.png}
+    \caption{Arena layout}
+    \label{fig:arena}
+\end{figure}
 
 \section{Project Management}
 \quad L.W. Pender was selected as the leader of the group. We created a Trello project for our project management tool which has functionalities like a Gantt chart and Kanban boards. We made a rough timeline of the large milestones of the project with dependencies on the gantt chart. From this, smaller, agile tasks were planned and added to seperate cards on each teams individual board. The larger milestones were having an assembled robot, having the sensors fully connected and funcitoning, integrating all the systems and final testing.
@@ -295,12 +302,6 @@ We plan to use UDP packets to stream commands to the Arduino on the robot, which
     \label{fig:overall_sys}
 \end{figure}
 
-\begin{figure}[!h]
-    \centering
-    \includegraphics[width=0.8\textwidth]{assets/arena.png}
-    \caption{Arena layout}
-    \label{fig:arena}
-\end{figure}
 
 \begin{figure}[!h]
     \centering
