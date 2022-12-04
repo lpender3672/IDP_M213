@@ -3,10 +3,12 @@
 \usepackage{graphicx}
 \usepackage{cleveref}
 \usepackage{enumitem}
+\usepackage{float}
 
-\title{First IDP Report}
-\author{Group M213 ; Team Name: Roomba PLC ;Robot Name: Roomba}
-\date{November 2022}
+
+\title{Mechanical Documentation}
+\author{Group M213 Mechanical Team; Pender, L.W. (lwp26) and Hendricks, M.A. (mah237)}
+\date{December 2022}
 
 % To be confirmed that it requires the setspace package, try with and without.
 \usepackage{setspace}
@@ -29,27 +31,193 @@
 
 \newpage
 
+\section{Parts List}
+
+\subsection{Standard Mechanical Parts used}
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{|c|c|c|}
+        \hline
+        \textbf{Part} & \textbf{Quantity} & \textbf{Part No.} \\ \hline
+        \hline
+        M3 Socket Head Cap Screws and nuts & 14 & -\\
+        \hline
+        M4 Socket Head Cap Screws and nuts & 7 & -\\
+        \hline
+        12v Battery & 1 & -\\ 
+        \hline
+        4” Wheel Vex 276-1497 & 2 & RP 70-6239\\
+        \hline
+        Ball Caster & 1 & -\\
+        \hline
+        Wheel Adaptors & 2 & -\\
+        \hline
+        18RPM 12v motor & 2 & OC 3999920\\
+        \hline
+        Standard Servo & 1 & MC-410 \\
+        \hline
+        Arduino wifi v2 & 1 & - \\
+        \hline
+        Adafruit Motor Shield V2 & 1 & - \\
+        \hline
+        Red Push Button & 1 & RP 78-0100\\
+        \hline
+        Ultrasonic sensor & 2 & HC-SR504\\
+        \hline
+        \textbf{Total} & 33 & -\\ \hline
+    \end{tabular}
+    \caption{Given Parts}
+    \label{tab:given_parts}
+\end{table}
+
+
+\subsection{Manufactured Parts list}
+% table of parts
+\begin{table}[h]
+    \centering
+    \begin{tabular}{|c|c|c|c|}
+        \hline
+        \textbf{Part} & \textbf{Quantity} & \textbf{Manufacuring} \\ \hline
+        \hline
+        Top Plate & 1 & Laser Cut \\
+        \hline
+        Bottom Plate & 1 & Laser Cut \\
+        \hline
+        Bulkhead & 1 & Laser Cut \\
+        \hline
+        Castor Spacer & 1 & Laser Cut \\
+        \hline
+        Finger connector & 2 & Laser Cut \\
+        \hline
+        Left finger connector & 1 & Laser Cut \\
+        \hline
+        Right finger connector & 1 & Laser Cut \\
+        \hline
+        Grabber finger & 2 & Laser Cut \\
+        \hline
+        Front Ultrasonic mount & 1 & 3D printed \\
+        \hline
+        Top Connector & 1 & Sheet metal \\
+        \hline
+        Grabber & 2 & Sheet metal \\
+        \hline
+        Side ultrasonic mount & 1 & Sheet metal \\
+        \hline
+        Motor mount & 2 & Sheet metal \\
+        \hline
+        \textbf{Total} & 17 & \\ \hline
+    \end{tabular}
+    \caption{Manufactured Parts}
+    \label{tab:manufactured_parts}
+\end{table}
+
 \section{Drawings}
-\quad The mechanical team consists of Pender, L.W. (lwp26) and Hendricks, M.A. (mah237).
 
-\subsection{Chassis}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/entire_model_drawing.JPG}
+    \label{fig:entire_model_drawing}
+    \caption{Drawing of entire robot}
+\end{figure}
 
-\subsection{Gripping Mechanism}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/plate_drawings.JPG}
+    \label{fig:plate_drawings}
+    \caption{Drawing of upper and lower plates}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/small_parts.JPG}
+    \label{fig:smaller_parts}
+    \caption{Drawing of smaller parts}
+\end{figure}
+
+\section{Manufacuring}
+
+\subsection{Laser cut parts}
+\quad As shown in the parts list, we mostly used laser cut parts. The parts were cut from sheets of 3mm or 6mm laser ply. The laser has a diameter of 0.2mm and so has a tolerance of 0.1mm which was accuate enough that we did not need to account for in our design.
+
+\subsection{Sheet metal parts}
+\quad The sheet metal parts were cut from 1.5mm steel sheet. The parts were cut using a guillotine and then bent using a manual bender.
 
 \section{Assembly}
+\quad The robots mechanical parts were assembled using nuts, hex bolts and washers. Some electrical parts were attached later using zip ties and hot glue instead.
+
+\subsection {Chassis}
 
 \subsection{Gripping Mechanism}
+\quad The gripping mechanism designed made it very difficult to assemble however the assembly order can be seen in the following ordered images.
+
+\subsubsection{Bottom gripping mechanism section assembly} 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/assembly/1.png}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/assembly/2.png}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/assembly/3.png}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/assembly/4.png}
+\end{figure}
+
+\subsubsection{Top gripping mechanism section assembly} 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/assembly/5.png}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/assembly/6.png}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/assembly/7.png}
+\end{figure}
+
+\subsubsection{Top and bottom section assembly}
+\quad Note that it is important that the gears mesh correctly such that the grabber can be opened and closed. 
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/assembly/8.png}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/assembly/9.png}
+    \caption{Fully assembled gripping mechanism}
+\end{figure}
 
 \section{CAD renders}
 
-\section{Appendix}
-% Please put all of your image documents in the asset folder and place all of your figures here. TQ
-
-\begin{figure}[!h]
+\begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{assets/entire_model_drawing.jpg}
-    \caption{Overall System Level Diagram}
-    \label{fig:overall_sys}
+    \includegraphics[width=0.8\textwidth]{assets/isometric.jpg}
+    \label{fig:isometric}
+    \caption{Isometric Render}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{assets/grabber_render.jpg}
+    \label{fig:grabber_render}
+    \caption{Grabber Render}
 \end{figure}
 
 \end{document}
