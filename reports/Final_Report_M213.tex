@@ -4,6 +4,15 @@
 \usepackage{cleveref}
 \usepackage{enumitem}
 
+\usepackage{titlesec}
+
+\setcounter{secnumdepth}{4}
+
+\titleformat{\paragraph}
+{\normalfont\normalsize\bfseries}{\theparagraph}{1em}{}
+\titlespacing*{\paragraph}
+{0pt}{3.25ex plus 1ex minus .2ex}{1.5ex plus .2ex}
+
 \title{Final IDP Report}
 \author{Group M213 ; Team Name: Roomba PLC ;Robot Name: Roomba}
 \date{3rd December 2022}
@@ -63,18 +72,11 @@
     \item 1st Competition only manual demonstration of block identification (block may be brought up to stationary robot by hand to demonstrate correct detection reliably) +10
 \end{itemize}
 
-\quad The arena layout can be seen in \Cref{fig:arena}. The robot must be able to traverse the ramp and tunnel, detect and deliver the blocks to the correct area. By traversing the ramp first before picking up the block, the robot can just push the block on the floor without lifting it which is far easier.
+\quad The robot must be able to traverse the ramp and tunnel, detect and deliver the blocks to the correct area. By traversing the ramp first before picking up the block, the robot can just push the block on the floor without lifting it which is far easier.
 
 \quad To meet these criteria in the small timeline given our group was organised into mechanical, electrical and software teams. We also used a variety of tools to help us with our project management, design and collaberation.
 
-\quad We made an initial overall system level diagram as can be seen in \Cref{fig:overall_sys} however as the project progressed and strides were made in OpenCV and the mechanical design, we made an updated system level diagram as can be seen in.
-
-\begin{figure}[!h]
-    \centering
-    \includegraphics[width=0.8\textwidth]{assets/arena.png}
-    \caption{Arena layout}
-    \label{fig:arena}
-\end{figure}
+\quad We made an overall system level diagram as can be seen in \Cref{fig:overall_sys}
 
 \begin{figure}[!h]
     \centering
@@ -83,14 +85,8 @@
     \label{fig:overall_sys}
 \end{figure}
 
-\begin{figure}[!h]
-    \centering
-    \includegraphics[width=0.8\textwidth]{assets/arena.png}
-    \caption{Arena layout}
-    \label{fig:arena}
-\end{figure}
-
 \section{Project Management}
+\quad L.W. Pender was selected as the leader of the group. We created a Trello project which has functionalities like a Gantt chart and Kanban boards as our project management systems. We made a rough timeline of the large milestones of the project such as having a fully assembled robot, having the sensors all attached onto the robot and funcitoning, having a working robot and testing, and placed these onto the Trello project. We then made smaller short-term goals for each team to achieve. A Gantt chart for the project can be seen in \Cref{fig:gantt}.
 
 \begin{figure}[!h]
     \centering
@@ -98,9 +94,9 @@
     \caption{Screenshot of Gantt Chart}
     \label{fig:gantt}
 \end{figure}
-
-\quad L.W. Pender was selected as the leader of the group. We created a Trello project for our project management tool which has functionalities like a Gantt chart and Kanban boards. We made a rough timeline of the large milestones of the project with dependencies on the gantt chart. From this, smaller, agile tasks were planned and added to seperate cards on each teams individual board. The larger milestones were having an assembled robot, having the sensors fully connected and funcitoning, integrating all the systems and final testing.
     
+\hspace{10em}
+
 \section{Mechanical}
 \quad The mechanical team consists of Pender, L.W. (lwp26) and Hendricks, M.A. (mah237). 
 
@@ -111,7 +107,7 @@
 
 \quad Therefore, the best option we settled on was the simple 2-wheeled system, since it would be the simplest to manufacture. We plan to use the larger wheels so that our rotary encoder would be more accurate. The wheels will be connected to the higher torque lower RPM motor via the given motor adaptors. The higher torque will help in the robot going up the ramp. The motors will be attached to the robot by a metal bracket and bolting it onto the threads on the aluminium plate on the motor. We also will place a ball castor at the other end of the chassis to ensure the robot remains stable as it ascends the ramp. However due to the line sensors in our final robot being placed too low and too far away from the castor ball, the line sensors end up catching the ramp. There was a tradeoff decision here as fixing this problem would leave less time for the software team to test the robot and might require recalibration. After some discussion with the team, we decided to focus on other aspects of the robot and only use the tunnel so we could get more points more reliably.
 
-\begin{table}[]
+\begin{table}[!h]
     \centering
     \begin{tabular}{|c|p{5cm}|p{5cm}|}
         \hline
@@ -167,25 +163,29 @@ The chassis design for the robot was designed to be very modular, we had multipl
 \quad The assembly of the grabber mechanism required the use of pin joints to allow the parts of the mechanism to rotate and grab the block. We made the pin joints by having bolts separate the pieces with nuts and washers so that the joints will have less friction and will act like a pin joint. Another problem we faced during assembly was that the parts did not mesh together really well because of the difference in heights of the parts and the robot chassis being slightly warped due to some bolts joining the top and bottom plate together. We resolved this by having a long bolt through the top and bottom plate and used nuts fix the distance from the top to the bottom plate near the grabber. This ensured that the grabber gears meshed well together.
 
 \subsection{Cardboard Model and CAD}
-\quad We have made a cardboard model prototype for testing purposes as can be seen in \Cref{fig:cardboard_model}. This was laser cut out of cardboard and assembled using hot glue. Our first wooden robot was produced fairly quickly but was determined to be the final robot instead of reproducing another one to allow the other teams to continue testing the robot which was more critical to the project at the time.
+\quad We have made a cardboard model prototype for testing purposes. This was laser cut out of cardboard and assembled using hot glue. Our first wooden robot was produced fairly quickly but was determined to be the final robot instead of reproducing another one to allow the other teams to continue testing the robot which was more critical to the project at the time.
+
+The CAD model of the final robot and some drawings can be seen in \Cref{fig:cadndraw}.
 
 \begin{figure}[!h]
     \centering
-    \includegraphics[width=0.8\textwidth]{assets/assembled_prototype.jpg}
-    \caption{Assembled Prototype}
-    \label{fig:assembled_prototype}
+    \includegraphics[width=0.8\textwidth]{assets/CAD_ndrawing.jpg}
+    \caption{CAD and Drawings}
+    \label{fig:cadndraw}
 \end{figure}
 
-The CAD model of the final robot and some drawings can be seen in .
-
 \section{Electrical}
-\quad The electrical teams consists Hor Ye Heng (yhh35) and Yiheng Liu (yl827). 
+\quad The electrical teams consists Ye Heng Hor (yhh35) and Yiheng Liu (yl827)
 
-As we conducted two designs (Line following and OpenCV) in parallel, they will be introduced separately. However, as OpenCV based navigation requires mostly the same and less sensors, we did no more than taking off sensors and small tweaks to the PCB to ensure the robot more stable.
+The electrical design went through significant changes throughout the development lifecycle of the project, because we decided to transition to computer vision for navigation after the first competition, which greatly simplified the electronics.
+
+For completeness, a brief overview of everything implemented, regardless of whether or not they were used in the final implementation, is included below.
+
 \subsection{Line Following}
 \subsubsection{Component List}
-The line following robot contains the following components, and their functions are listed below:
-\begin{table}[]
+The line following robot contains the following components, and their functions are shown in \Cref{tab:elec_comp}
+
+\begin{table}[!h]
     \centering
     \begin{tabular}{|c|p{5cm}|p{5cm}|}
 \hline
@@ -195,7 +195,7 @@ Component &
    \\
    \hline
 Line Sensor (OPB704) &
-  Changes resistance according to the infrared reflected by the surface &
+  Provides a voltage readback representing the infrared reflectance of the surface below. &
   Connect in series with resistors to give a feedback voltage to the Arduino according to surface detected
    \\
    \hline
@@ -205,73 +205,56 @@ Connected to PWM port of Arduino to send pulses  Time the difference between pul
    \\
    \hline
 Light Dependent Resistor &
-  Changes resistance according to lighting condition &
+  Changes resistance according to amount of incident light, which changes with block density &
   Connect in series with resistors   to give a voltage to Arduino according to light shine (reflection from block) 
    \\
    \hline
 LED &
-  Lights up &
+  Indicates robot state &
 4 white LEDs connected in series with 100ohm resistor to shine up block Amber/Green/Red used to indicate   working state\\
   \hline
     \end{tabular}
     \caption{Component List}
-    \label{tab:comp_list}
+    \label{tab:elec_comp}
 \end{table}
 
-\subsubsection{Overall Design}
-\quad The tasks we are attempting to achieve are:
-\begin{enumerate}
-    \item Line sensing
-    \begin{description}[leftmargin=-0.2in]
-        \item[] For line sensing, we are using three line sensor OPB704 attached on the bottom of the vehicle to detect the lines. It returns different voltage depend on the reflection so able to detect while line and black surface.
-    \end{description}
-    \item Block detecting
-    \begin{description}[leftmargin=-0.2in]
-        \item[] We are using an LDR in series with a resistor to detect the light passing trough the block. We measure the voltage change across the LDR to determine which block it is.
-    \end{description}
-    \item Channel Guiding
-    \begin{description}[leftmargin=-0.2in]
-        \item[] A ultrasonic sensor will be used in the channel to keep the distance with the wall of the channel constant.
-    \end{description}
-\end{enumerate}
 \subsubsection{Schematic and PCB layout}
-\quad The schematic is as follows:
+\quad The schematic is shown in \Cref{fig:sche}.
 
 \begin{figure}[!h]
     \centering
     \includegraphics[width=0.8\textwidth]{assets/Schematic.png}
-    \caption{Component Schematic}
-    \label{fig:schematic}
-\end{figure} 
+    \caption{Schematic Diagram}
+    \label{fig:sche}
+\end{figure}
+These were all done soldering in week 3 and ready for test on stripboard. We originally used stripboard to build our circuit as it is faster to prototype and change any designs according to tested results. Functions are all tested fine before installed to the robot.
+As the four line sensors occupied all analog inputs on the arduino, we implemented code in software to make pin 12 capable of reading analog inputs and have the LDR connected to it.
 
-\quad These were all done soldering in week 3 and ready for test on stripboard. We originally used stripboard to build our circuit as it is faster to prototype and change any designs according to tested results. Functions are all tested fine before installed to the robot. As the four line sensors occupied all analog inputs on the arduino, we implemented code in software to make pin 12 capable of  reading analog inputs and have the LDR connected to it.
+However, it became apparent on the morning of the first competition that the exposed pads on the board were shorted by exposed nuts on the robot frame, causing one of the line sensors to completely malfunction, which caused the robot to only be able to score 20 points, since we could not navigate back to the starting half of the arena.
 
-\quad However before the first competition, the board get shorted by the nuts on the robot, casued one of the line sensors not working. This has been the major reason for scoring 20 in the first competition, as the robot lost its ability to navigated back. After that test, we decided to change to the Arduino protoboard as most of the design are settled and it is apparently more stable. This is the protoboard design we’ve raised:
-
+We made the decision to use the Arduino shield boards, as they would completely eliminate shorting of component pads by coming into contact with random metal surfaces on the robot. This really helped to ensure that the robot's performance was robust and reliable.
 \begin{figure}[!h]
     \centering
     \includegraphics[width=0.8\textwidth]{assets/Proto.png}
-    \caption{Board layout}
-    \label{fig:board_layout}
-\end{figure} 
-
+    \caption{Board Layout Diagram}
+    \label{fig:bldiag}
+\end{figure}
 \begin{figure}[!h]
     \centering
     \includegraphics[width=0.8\textwidth]{assets/Board.png}
-    \caption{Soldered protoboard}
-    \label{fig:final_board}
-\end{figure} 
+    \caption{Completed Board}
+    \label{fig:cbldiag}
+\end{figure}
 
-\subsection{OpenCV}
-\quad Before week 4 we get OpenCV working, and therefore we decided to switch to OpenCV navigation approach. As OpenCV is uncapable of block detection, the detection mechanism has been kept. Line sensors and ultrasonic sensors are no longer required, and the updated component list is as follow:
+\quad As we made the decision to make the change to OpenCV, most of the sensors were no longer needed. Only the LDR, which is used for detecting block density, remained.
 
-\quad The only change to the PCB is LDR now connected to A4 to ensure stable performance, as line sensors no longer required. Besides that, while components are mostly removed, the sockets are kept on the protoboard, so no other design has changed.
+Thus, the only change to the PCB is LDR now connected to A3 to ensure stable performance, as line sensors are no longer required. The rest of the connectors are left unpopulated.
 
 \section{Software}
 
-\quad The software team consists of Yian.W (yw543) and Yuge.Z (yz754). For software, there are two separate systems proceeding at the same time: Line-following and openCV (explored by Hor Ye Heng (yhh35)). The aim is that each of them enables the robot to complete the competition independently, and the final choice on which system to use depends on the performance in the tests.
-\subsection{Overall design}
-We focus on line-following system, which also includes functions of block detection, density detection and block pick up/drop, using 4 line sensors, 2 distance sensors and 1 ultrasonic sensor.
+\quad The software team consists of Yian.W (yw543) and Yuge.Z (yz754). For software, there are two separate systems proceeding at the same time: Line-following and OpenCV (explored by Ye Heng Hor (yhh35)). Th initial intention was to have separate systems that could either work in conjunction with each other for redundancy, or to pick whichever produces the more complete/stable end result.
+\subsection{Line Following design}
+The line following design includes the following:
 \begin{itemize}
     \item 4 line sensor at the bottom of robot would give voltage values for black and white floor. We set up threshould values for low/high states, and then design the basic line-following logic.
     \item 2 distance sensors are installed in front and right hand side of the robot separately. The front one detects the block, and the side one detects the wall in tunnel.
@@ -281,110 +264,103 @@ We focus on line-following system, which also includes functions of block detect
 The main logic (which involves the detection from sensors) for the system is: Follow the white line with correction. If inside tunnel (when all line sensors give low reading), correct the movement with side distance sensor's reading.
 If the front distance sensor detects the block, stop the robot, detect the density and return to corresponding square. Then go home. We plan not to go over the ramp due to some mechanic issue, and all of these if conditions are ensured to be triggered correctly with time counted.
 
-\subsection{Test and trade-off in design}
+\subsubsection{Test and trade-off in design}
 The tests show that the line-following function works perfectly. However, the front ultrasonic and distance sensors do not work ideally. For ultrasonic sensor, it does not give reliable reading for block density. While for distance sensor, it is the problem of position it is installed.
 The distance sensor is installed towards the floor rather than towards the front, which sometimes accidentally trigger the "block detected" function.
 
 The problems of sensors cannot be solved effectively and as a result, we can only count the time to stop the robot, trigger "pick up" function and then return, sacrificing the maximum number of blocks got and aim for only one block.
 
-\subsection{Team management and major decisions}
-The team management can be efficient overall. There is a strong cooperation among software, electrical and mechanical teams. The structure of team management is that software team express demands, and then electrical and mechanical teams help fulfill the demands (although there are some trade-off). Especially, the task division in the whole team is clear, which supports two individual systems to be developed at the same time, and both are developed to the extent that allows us to get some scores in the competition.
-
-Right after the first competition, there was a discussion for the whole team about deciding which system to be used finally.
-Considering:
+\subsection{OpenCV}
+\subsubsection{Decision to abondon line following}
+We made the decision to attempt to use OpenCV for the following reasons:
 
 \begin{itemize}
-    \item the actual performance of line-following system in the competition (20 points), the upper limit of scores can be lower than openCV system due to time-counting for picking up block.
-    \item our target for IDP is to learn as much as possible, both systems should have equal chance to be tested.
+    \item To allow the robot to traverse the ramp, significant, potentially breaking changes would need to be made to the location of the line sensors
+    \item The electrical connection to the line sensors have been rather unreliable.
 \end{itemize}
-Therefore, the major decision throughout the IDP sessions is to change from line-following system to openCV system.
 
-\subsection{Analysis of failure}
-In the tests, there are many occasions that we fail to debug when the codes does not work well.
-For line-following system, there are nearly 800 lines of coding, which does not include debugging module.
-Besides, a minor problem is that the coding files have not been managed in order.
-The solution for debugging actually requires more experience and we need to learn more systemmatically. While for the files management, simply name them in detail and try to save before editing anything new.
+\subsubsection{OpenCV Control Architechture}
+The main control loop brings together the following 2 modules to complete the tasks set by CUED:
 
+\paragraph{Remote Control over Wifi}
 
+A http request parser was implemented on the Arduino onboard the robot, which allows for a master-slave style communication protocol. 
 
+The Arduino is connected to the main control PC via the PC's mobile hotspot. The PC can then send commands over to the Arduino, each consisting of an instruction string and an optional parameter string. For example, the robot can be commanded to \textbf{move forward} for \textit{1000ms}. After each command, the Arduino sends back a HTTP 200 OK response, with a reading of the LDR value, which enables the detection of the block type.
 
+\paragraph{Video Acquisition and Processing}
+The video acquisition module takes care of tasks like acquiring real time video from the overhead camera, correcting for distortion and locating the robot.
 
+The `arena` class located within this module also contains calibrated waypoints for navigation across the arena, which include all the positions where blocks are to be collected or dropped, as well as tunnel and ramp endpoints.
 
-\subsection{OpenCV}
-\subsubsection{Overall Plan}
-This branch of the project is currently in the nightly stage, i.e. we are only exploring the feasibility of using computer vision, powered by the OpenCV library, to carry out path planning around the arena and therefore offloading the navigation of the robot entirely to a PC.
+\paragraph{Control Loop Behavior}
+At the beginning of the routine, a calibration is performed where the distance and anglular displacement per unit time is recorded, and used for all subsequent movement commands.
 
-Should this be successful, the overall operation would involve streaming the live video feed from the overhead webcams into a Python script, which would carry out the following processing steps:
-\begin{enumerate}
-    \item World Mapping 
-    \begin{description}[leftmargin=-0.2in]
-        \item The script would detect all the features within the field of view such as the white path lines, the red and green squares, and the lime colored obstacle. A map of the arena would be constructed from the location information of these features, and cached into memory.
-    \end{description}
-    \item Navigate to Payload
-    \begin{description}[leftmargin=-0.2in]
-        \item[] In this state, the script waits for the presence of the target payload (the foam blocks). Once a foam block is detected, a pathfinding algorithm would be run to establish a path from the current robot position to the position of the foam blocks. Commands will then be sent to the robot to move according to the aforementioned path.
-    \end{description}
-    \item Navigate to Goal Area
-    \begin{description}[leftmargin=-0.2in]
-        \item[] In a similar manner, once the foam block has been picked up and it's category determined, the path planning algorithm infers a path from the current robot position to the goal area. Commands will then be sent to the robot to carry out the required movements.
-    \end{description}
-\end{enumerate}
+Then, the robot simply navigates to predetermined waypoints and performs the requisite actions to complete the tasks set for us.
 
-We plan to use UDP packets to stream commands to the Arduino on the robot, which would be configured to be an access point so that we have a dedicated data pipe that will not be affected by inconsistencies of the network infrastructure in the department. However, should the handling of the UDP packets become too much of a challenge, we could fall back to sending HTTP requests to command the Arduino - an approach that has been well documented by others within the maker community.
+\paragraph{Scheme to Improve Reliability}
 
-\subsubsection{Potential Issues and Ways to Mitigate Them}
-\begin{enumerate}
-    \item Latency
-    \begin{description}[leftmargin=-0.2in]
-        \item[] We noticed that OpenCV buffers frames as they come in over the MJPEG stream, and therefore, with our current naive implementation, the speed at which the processing loop runs determines how much the current frame being processed lags behind real time.
-        \item[] This should be an easy fix, a thread could be spawned to clear out the frame buffer such that the current frame being read by the processing loop is never stale.
-    \end{description}
-    \item Network Dropout
-    \begin{description}[leftmargin=-0.2in]
-        \item[] We were informed multiple times by various parties that network stability was a huge issue for teams in the past.
-        \item[] In the event that issues with 802.11b/g/n network congestion become significant, the ESP32 on board the Arduino also has native support for Bluetooth Low Energy (BLE), which implements frequency hopping specifically to combat congestion, so we would switch over to using BLE for communication between the PC and the Arduino.
-    \end{description}
-\end{enumerate}
+Due to the script losing track of the marker intermittently when the robot is at the peripheral areas of the camera, and by extension the very edges of the arena, we devised the following scheme to attempt to regain a lock on the AruCo marker:
 
+When the main control script requests a reading of the current position of the robot, if the target locating script does not manage to find the target in the current frame, it will try again by acquiring a new frame and running all the detection routines on the new frames, for a maximum of `max-retries` times. This helps to solve issues related to missing the marker due to noise.
 
-\section{Appendix}
-% Please put all of your image documents in the asset folder and place all of your figures here. TQ
+Should the script still fail to locate the marker, the robot performs a manoevure to attempt to go to an area of the arena where the target has a better chance of being detected. This is achieved in the final script by reversing the robot for 1000 ms and commanding it to go forward for 2000 ms. During our testing, it was found that this reverse before moving forward scheme was particularly effective if the robot gets stuck inside the tunnel.
 
-\begin{figure}[!h]
-    \centering
-    \includegraphics[width=0.8\textwidth]{assets/Overall_sys.jpg}
-    \caption{Overall System Level Diagram}
-    \label{fig:overall_sys}
-\end{figure}
+\subsubsection{Key Decisions in OpenCV Architechture}
 
+\paragraph{Waypoint Based Navigation}
 
-\begin{figure}[!h]
-    \centering
-    \includegraphics[width=0.8\textwidth]{assets/Gripper_Mechanism.jpg}
-    \caption{Scissor-like Gripper Mechanism}
-    \label{fig:grip_mech}
-\end{figure}
+Initially, a complete set of functions to automatically detect features within the arena and intelligently pathfind around was developed. Despite having a working solution, we chose to abandon it in favour of a simpler, pre-recorded waypoint based navigation solution due to difficulties testing the smart feature detection based solution as it requires the arena to be completely clear of unexpected objects, and it was impossible to clear the arena as other teams also had to use it.
 
-\begin{figure}[!h]
-    \centering
-    \includegraphics[width=0.8\textwidth]{assets/isometric.png}
-    \caption{Current Isometric Solidworks Model}
-    \label{fig:isometric}
-\end{figure}
+\paragraph{Time Based Control}
 
-\begin{figure}[!h]
-    \centering
-    \includegraphics[width=0.8\textwidth]{assets/Cardboard_model.jpg}
-    \caption{Cardboard Model}
-    \label{fig:cardboard_model}
-\end{figure}
+As the decision to use OpenCV was made rather late, it was not possible to realise the initial idea of having optical encoders on the wheels for absolute position sensing. This made the task of accurately navigating the robot extremely challenging due to the inconsistent performance of the DC brushed motors being controlled by PWM in an open loop manner. However, it was the only option given the time constrains.
 
-\begin{figure}[!h]
-    \centering
-    \includegraphics[width=0.8\textwidth]{assets/assembled_prototype.jpg}
-    \caption{Assembled Prototype}
-    \label{fig:assembled_prototype}
-\end{figure}
+\paragraph{Use of AruCo Markers}
+
+Initially, the plan was to use a round target to serve as the main detection target, as a large round object would be very easy to detect since it will be a unique feature within the field of view of the camera. However, upon testing, the size of target needed exceeded our expectations, and 3D printing a target large enough would not have been possible within the time we had. So, the decision was made to use AruCo markers which had the added benefit of also providing information of the heading of the robot.
+
+\paragraph{Only Attempting one lap}
+Given the constrains of having to slow down the motors to reduce errors caused by inconsistent motor drive strength, we had to reduce the motor speed to about $80\%$ of maximum, which did not allow us to comfortably navigate around multiple times within 5 mins. Hence, it was decided that we would prioritise getting back to the home point to confidently gain the 20 points associated.
+
+\subsubsection{Failure Analysis}
+Unfortunately, despite all the measures described above attempting to increase the reliablilty of the system, it failed to complete a single lap around the arena, which only allowed us to score 10 points out of the (conservatively estimated) 70 points.
+
+The main cause of failure was that the video processing script lost track of the marker, and all of the logic implemented to attempt a recovery failed to do so.
+
+It was particularly perplexing because when the failure occured, the robot was in an area of the arena that had extremely reliable marker detection in all of the prior testing (usually, the marker would be lost near the tunnel edge, but this time the failure occured at the ramp end, which was well within the field of view).
+
+Without extensive testing and validation, it would be hard to conclude what exactly caused this unrecoverable failure. However, by observing the recorded video feed of past successful attempts, and the live video feed as the competition.
+
+\paragraph{Change in Lighting}
+We did not expect this to be an issue, as the entire idea of using the monochromatic AruCo marker was that it would be robust against changes in lighting. However, upon scrutiny, the reflections on the tape residue on the arena was different in the recorded and live footage. Considering the marker was printed with a laser jet printer which produces black areas which are glossy, it is possible that somehow light from unexpected sources was reflecting off the marker, causing too much loss of contrast.
+
+The fix for this would be trivial: print the pattern using an inkjet printer, which produces matte prints
+
+\paragraph{Recovery Manoevure was Ineffective}
+
+The recovery manouvre described was great in getting the robot unstuck from under the tunnel, and sometimes effective in enabling the script to regain a lock on the marker. However, in hindsight, the occasions where recovery was achieved when the robot was not stuck were probably flukes, since in the case of the competition, it so happened that the manoeuvre caused the robot to move *away* from the center where detection was most reliable.
+
+A much better way to implement such a recovery measure would be to keep a log of the past commands sent to the robot, particularly those telling it to translate, and send the scaled down reverse of those commands, essentially partially undo-ing the past command that caused the robot to veer out of the zone where detection can be done successfully.
+
+\paragraph{Imbalance in Left and Right Wheels}
+This was a known issue since the start of development, and a mitigation was attempted by manually tuning the power sent to each motor, the calibration procedure at the start of the routine, and separating translation and rotation commands (because wheel speed imbalances primarily cause unexpected rotation). However, that still proved to be insufficient.
+
+The best and most straightforward way to solve this problem would be to implement optical encoders on the wheel, as another group did, and as planned for ourselves. This would have the added benefit of increased speed and accuracy, since the movement of the robot would be precisely known, and the slow calibration and on-the-fly heading correction can both be eliminated.
+
+\paragraph{Poor Choice of Pattern}
+Looking at another group which managed good results with computer vision, we suspect that the particular pattern index we chose, and thus the generated pattern, was too complex.
+
+Scrutinising the image from the camera revealed that at the periphery of the field-of-view, due to *comatic aberation*, the square cells of the pattern were no longer square, and there was significant spillover of the white areas into the black areas. We suspect that this was the most direct reason the detection was unreliable at the edges of the arena.
+
+This is significant since the marker identification function implemented by the OpenCV library rejects markers that have a certain percentage pixels within cells (squares) which are the wrong colour.
+
+The fix for this would be to choose a marker which is more blob-like, i.e. a marker that contains a large contiguous shape, as the other group had, would probably be more tolerant in terms of this failure mode, than the one we had, which was significantly more checkerboard-like.
+
+Ultimately, these are just educated guesses at why the robot failed the way it did. Despite that, these speculations should serve as excellent jumping off points for any subsequent debugging efforts.
+
+\section{Conclusion}
+    \quad We did not manage to achieve our target of 100 points in the competition. The main point of failure was due to the failure of the OpenCV program to detect the robot's position at certain points due to the changed lighting during the competition. Suggested improvements to the development of a robot of this sort would be to make a risk matrix to assess the likely points of failure and perform mitigating actions to prevent them.
 
 
 
