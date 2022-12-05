@@ -118,7 +118,7 @@
     \centering
     \includegraphics[width=0.8\textwidth]{assets/entire_model_drawing.JPG}
     \label{fig:entire_model_drawing}
-    \caption{Drawing of entire robot}
+    \caption{Drawing of entire robot showing overall dimensions}
 \end{figure}
 
 \begin{figure}[H]
@@ -140,13 +140,22 @@
 \subsection{Laser cut parts}
 \quad As shown in the parts list, we mostly used laser cut parts. The parts were cut from sheets of 3mm or 6mm laser ply. The laser has a diameter of 0.2mm and so has a tolerance of 0.1mm which was accuate enough that we did not need to account for in our design. Most of the laser cut parts were hot glued together but bolted elsewhere.
 
+\quad CAD files were directly converted to 2D DXF files and then imported into the laser cutting software. The speed and power settings were important and varied for cutting each thickness of wood. Thicker wood needed higher power but lower speed. We also very low power settings to engrave our group name on to the top plate. Order of cuts also mattered as to not displace parts that had internal hole cuts.
+
 \subsection{Sheet metal parts}
 \quad The sheet metal parts were cut from 1.5mm steel sheet. The parts were cut using a guillotine and then bent using a manual bender. The metal parts all attached to the chassis by nuts and bolts.
 
+\subsection{3D printed parts}
+\quad CAD files were directly converted to STL files and then imported into Dorawareslicing software which created a WTK file for the RS components 3D printer. Parts were printed on a raft for better plate adhesion and print success and so needed some cleanup.
+ 
 \section{Assembly}
-\quad The robots mechanical parts were assembled using nuts, hex bolts and washers. Electrical parts were attached later using zip ties. The LED and LDR are omitted from CAD but were attached using a single bolt and some additional hot glue.
+\quad The robots mechanical parts were assembled using nuts, hex bolts and washers. Electrical parts were attached later using bolts and zip ties where necessary. The LED and LDR are omitted from CAD but were attached using a single bolt and some additional hot glue.
 
 \subsection {Chassis}
+
+\quad The design of the chassis with the, compact motors and seperation plate meant that the battery, placed in the middle to centralise the centre of mass of the robot, was difficult to remove.
+
+\quad The battery can be removed by unscrewing the wheel, however, we did not need to remove the battery as it could be charged without removing it.
 
 \subsection{Gripping Mechanism}
 \quad The gripping mechanism designed made it very difficult to assemble however the assembly order can be seen in the following ordered images.
